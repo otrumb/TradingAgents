@@ -33,21 +33,13 @@ class MessageBuffer:
     }
 
     # Analyst name mapping
-    ANALYST_MAPPING = {
-        "market": "Market Analyst",
-        "social": "Sentiment Analyst",
-        "news": "News Analyst",
-        "fundamentals": "Fundamentals Analyst",
-    }
+    ANALYST_MAPPING = {key: spec.agent_node for key, spec in ANALYST_NODE_SPECS.items()}
 
     # Report section mapping: section -> (analyst_key for filtering, finalizing_agent)
     # analyst_key: which analyst selection controls this section (None = always included)
     # finalizing_agent: which agent must be "completed" for this report to count as done
     REPORT_SECTIONS = {
-        "market_report": ("market", "Market Analyst"),
-        "sentiment_report": ("social", "Sentiment Analyst"),
-        "news_report": ("news", "News Analyst"),
-        "fundamentals_report": ("fundamentals", "Fundamentals Analyst"),
+        **{spec.report_key: (key, spec.agent_node) for key, spec in ANALYST_NODE_SPECS.items()},
         "investment_plan": (None, "Research Manager"),
         "trader_investment_plan": (None, "Trader"),
         "final_trade_decision": (None, "Portfolio Manager"),
@@ -145,6 +137,7 @@ class MessageBuffer:
                 "sentiment_report": "Social Sentiment",
                 "news_report": "News Analysis",
                 "fundamentals_report": "Fundamentals Analysis",
+                "crypto_report": "Crypto Context",
                 "investment_plan": "Research Team Decision",
                 "trader_investment_plan": "Trading Team Plan",
                 "final_trade_decision": "Portfolio Management Decision",
@@ -383,14 +376,9 @@ def display_complete_report(final_state):
 
     # I. Analyst Team Reports
     analysts = []
-    if final_state.get("market_report"):
-        analysts.append(("Market Analyst", final_state["market_report"]))
-    if final_state.get("sentiment_report"):
-        analysts.append(("Sentiment Analyst", final_state["sentiment_report"]))
-    if final_state.get("news_report"):
-        analysts.append(("News Analyst", final_state["news_report"]))
-    if final_state.get("fundamentals_report"):
-        analysts.append(("Fundamentals Analyst", final_state["fundamentals_report"]))
+    for spec in ANALYST_NODE_SPECS.values():
+        if final_state.get(spec.report_key):
+            analysts.append((spec.agent_node, final_state[spec.report_key]))
     if analysts:
         console.print(Panel("[bold]I. Analyst Team Reports[/bold]", border_style="cyan"))
         for title, content in analysts:
@@ -445,21 +433,11 @@ def update_research_team_status(status):
 
 
 # Ordered list of analysts for status transitions
-ANALYST_ORDER = ["market", "social", "news", "fundamentals"]
+ANALYST_ORDER = list(ANALYST_NODE_SPECS)
 
-ANALYST_AGENT_NAMES = {
-    "market": "Market Analyst",
-    "social": "Sentiment Analyst",
-    "news": "News Analyst",
-    "fundamentals": "Fundamentals Analyst",
-}
+ANALYST_AGENT_NAMES = {key: spec.agent_node for key, spec in ANALYST_NODE_SPECS.items()}
 
-ANALYST_REPORT_MAP = {
-    "market": "market_report",
-    "social": "sentiment_report",
-    "news": "news_report",
-    "fundamentals": "fundamentals_report",
-}
+ANALYST_REPORT_MAP = {key: spec.report_key for key, spec in ANALYST_NODE_SPECS.items()}
 
 
 def update_analyst_statuses(message_buffer, chunk, wall_time_tracker=None):
