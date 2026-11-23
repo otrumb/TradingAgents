@@ -9,6 +9,11 @@ import typer
 from dotenv import find_dotenv, set_key
 from rich.markup import escape
 
+from cli.analyst_selection import (
+    ANALYST_CHOICES as ANALYST_CHOICES,
+    filter_analysts_for_asset_type as filter_analysts_for_asset_type,
+    parse_analysts as parse_analysts,
+)
 from cli.display import console
 from cli.models import AnalystType, AssetType
 from tradingagents.dataflows.symbols import safe_ticker_component
@@ -17,13 +22,6 @@ from tradingagents.llm_clients.model_catalog import get_model_options
 from tradingagents.llm_clients.openai_client import OPENAI_COMPATIBLE_PROVIDERS, SIGNED_IN_PROVIDERS
 
 TICKER_INPUT_EXAMPLES = "SPY, 0700.HK, BTC-USD"
-
-ANALYST_CHOICES = [
-    ("Market Analyst", AnalystType.MARKET),
-    ("Sentiment Analyst", AnalystType.SOCIAL),
-    ("News Analyst", AnalystType.NEWS),
-    ("Fundamentals Analyst", AnalystType.FUNDAMENTALS),
-]
 
 CRYPTO_SUFFIXES = ("-USD", "-USDT", "-USDC", "-BTC", "-ETH")
 
@@ -98,24 +96,6 @@ def parse_analysis_date(value: str) -> str:
     return day.isoformat()
 
 
-def parse_analysts(value: str, asset_type: AssetType) -> list[AnalystType]:
-    """Comma-separated analyst names, in the canonical order, checked against the asset."""
-    # "sentiment" is the name users see; the analyst's key is "social".
-    names = [{"sentiment": "social"}.get(n, n) for n in (n.strip().lower() for n in value.split(",")) if n]
-    if not names:
-        raise ValueError("name at least one analyst")
-    known = {a.value: a for a in AnalystType}
-    unknown = [n for n in names if n not in known]
-    if unknown:
-        choices = ", ".join("sentiment" if name == "social" else name for name in known)
-        raise ValueError(f"unknown analyst {', '.join(unknown)}; choose from {choices}")
-    available = filter_analysts_for_asset_type(list(known.values()), asset_type)
-    unavailable = [n for n in names if known[n] not in available]
-    if unavailable:
-        raise ValueError(f"{', '.join(unavailable)} is not available for {asset_type.value}")
-    return [a for a in available if a.value in names]
-
-
 def normalize_ticker_symbol(ticker: str) -> str:
     """Resolve user input to its canonical Yahoo symbol (single source of truth).
 
@@ -139,18 +119,6 @@ def detect_asset_type(ticker: str) -> AssetType:
     if canonical.endswith(CRYPTO_SUFFIXES):
         return AssetType.CRYPTO
     return AssetType.STOCK
-
-
-def filter_analysts_for_asset_type(
-    analysts: list[AnalystType], asset_type: AssetType
-) -> list[AnalystType]:
-    if asset_type != AssetType.CRYPTO:
-        return analysts
-    return [
-        analyst
-        for analyst in analysts
-        if analyst != AnalystType.FUNDAMENTALS
-    ]
 
 
 def _matching_choice(options, default):

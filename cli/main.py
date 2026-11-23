@@ -5,8 +5,9 @@ from typing import Annotated
 import typer
 from rich.markup import escape
 
+from cli.analyst_selection import DEFAULT_ANALYSTS
 from cli.display import console
-from cli.models import AnalystType, AssetType
+from cli.models import AssetType
 from cli.prompts import filter_analysts_for_asset_type, parse_analysts
 from cli.run import run_analysis
 from tradingagents.backtest import iter_grid, run_backtest, summarize
@@ -111,7 +112,7 @@ def backtest(
     end: str = typer.Option(..., "--end", help="Last analysis date, YYYY-MM-DD"),
     every: int = typer.Option(7, "--every", help="Days between analysis dates"),
     analysts: str = typer.Option(
-        None, "--analysts", help="Comma-separated analysts to run: market, sentiment, news, fundamentals; omit for all the asset type allows"
+        None, "--analysts", help="Comma-separated analysts to run: market, sentiment, news, fundamentals, crypto; omit for the asset type's default analysts"
     ),
     asset_type: str = typer.Option("stock", "--asset-type", help="stock or crypto"),
     portfolio: str = typer.Option(
@@ -128,9 +129,9 @@ def backtest(
         book = load_portfolio(portfolio) if portfolio else None
         kind = AssetType(asset_type.strip().lower())
         # The analysts are named and checked as for an analysis; without a
-        # choice, every analyst the asset type allows runs.
+        # choice, the asset type's default analysts run.
         chosen = (parse_analysts(analysts, kind) if analysts
-                  else filter_analysts_for_asset_type(list(AnalystType), kind))
+                  else filter_analysts_for_asset_type(list(DEFAULT_ANALYSTS), kind))
     except ValueError as exc:
         console.print(f"[red]{exc}[/red]")
         raise typer.Exit(code=1) from None
