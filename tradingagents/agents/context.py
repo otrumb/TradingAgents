@@ -21,6 +21,7 @@ def get_language_instruction() -> str:
     report rather than a mix of languages.
     """
     from tradingagents.dataflows.config import get_config
+
     lang = get_config().get("output_language", "English")
     if lang.strip().lower() == "english":
         return ""
@@ -29,7 +30,7 @@ def get_language_instruction() -> str:
     # search, where a negated rating ("not a Sell") reads as the call (#1435).
     return (
         f" Write your entire response in {lang}, except the labelled lines the format"
-        f" asks for (the \"**Rating**:\" line, \"FINAL TRANSACTION PROPOSAL:\"):"
+        f' asks for (the "**Rating**:" line, "FINAL TRANSACTION PROPOSAL:"):'
         f" keep their label and value in English, exactly as specified."
     )
 
@@ -180,11 +181,16 @@ def get_instrument_context_from_state(state: Mapping[str, Any]) -> str:
     """
     context = state.get("instrument_context")
     if isinstance(context, str) and context.strip():
-        return context
-    return build_instrument_context(
-        str(state["company_of_interest"]),
-        state.get("asset_type", "stock"),
-    )
+        instrument_context = context
+    else:
+        instrument_context = build_instrument_context(
+            str(state["company_of_interest"]),
+            state.get("asset_type", "stock"),
+        )
+    crypto_report = state.get("crypto_report", "")
+    if crypto_report:
+        instrument_context += f"\n\nCrypto Context:\n{crypto_report}"
+    return instrument_context
 
 
 def report_or_absent(text: str, source: str) -> str:
