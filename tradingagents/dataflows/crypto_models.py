@@ -1,0 +1,102 @@
+"""Immutable public crypto context; latest observations, never point-in-time history."""
+
+from datetime import timedelta
+from decimal import Decimal
+from typing import Literal, Self
+
+from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, model_validator
+
+Asset = Literal["ETH", "BTC", "SOL"]
+Source = Literal["binance", "deribit", "defillama", "growthepie", "solana_rpc"]
+Venue = Literal["Binance USD-M Futures", "Deribit", "chain aggregate", "Solana mainnet RPC"]
+
+
+class FrozenModel(BaseModel):
+    """Tuple-only containers keep frozen models deeply immutable."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid", allow_inf_nan=False)
+
+
+class Metric(FrozenModel):
+    """Null means unavailable, zero means measured zero. Units stay explicit."""
+
+    name: str
+    value: Decimal | None
+    unit: str
+    observed_at: AwareDatetime | None
+    resolution: str
+    coverage: str
+
+    def freshness(self, fetched_at: AwareDatetime, max_age: timedelta) -> str:
+        """Future timestamps and absent observations cannot count as fresh."""
+        if self.observed_at is None or self.value is None:
+            return "unknown"
+        age = fetched_at - self.observed_at
+        if age < timedelta(0):
+            return "future"
+        return "fresh" if age <= max_age else "stale"
+
+
+class SourceFailure(FrozenModel):
+    kind: Literal["http", "transport", "parse", "unavailable"]
+    detail: str
+
+
+class SourceSnapshot(FrozenModel):
+    source: Source
+    venue: Venue
+    endpoint: str
+    fetched_at: AwareDatetime
+    observed_at: AwareDatetime | None
+    resolution: str
+    coverage: str
+    metrics: tuple[Metric, ...] = ()
+    unknowns: tuple[str, ...] = ()
+    failure: SourceFailure | None = None
+
+    @model_validator(mode="after")
+    def consistent_venue(self) -> Self:
+        """Prevent exchange-specific data being presented as market-wide."""
+        expected: dict[Source, Venue] = {
+            "binance": "Binance USD-M Futures",
+            "deribit": "Deribit",
+            "defillama": "chain aggregate",
+            "growthepie": "chain aggregate",
+            "solana_rpc": "Solana mainnet RPC",
+        }
+        if self.venue != expected[self.source]:
+            raise ContextContractError(field="venue")
+        if self.failure is not None and self.metrics:
+            raise ContextContractError(field="failure with metrics")
+        return self
+
+
+class ContextContractError(ValueError):
+    """Invalid public context invariant."""
+
+    def __init__(self, *, field: str) -> None:
+        self.field = field
+        super().__init__(f"Invalid crypto context: {field}")
+
+
+class CryptoContext(FrozenModel):
+    asset: Asset
+    semantics: Literal["current_snapshot"] = "current_snapshot"
+    snapshots: tuple[SourceSnapshot, ...]
+    unknowns: tuple[str, ...] = (
+        "Current public snapshots only; historical point-in-time reconstruction unsupported.",
+        "Chain activity describes networks, not token-holder demand or exchange-wide positioning.",
+    )
+
+    def render(self) -> str:
+        """Canonical JSON for tools and analyst nodes; no wall-clock-dependent text."""
+        import json
+
+        return json.dumps(self.model_dump(mode="json"), sort_keys=True, indent=2)
+
+
+class SnapshotRequest(FrozenModel):
+    """No date/as-of input: this collector cannot satisfy historical requests."""
+
+    asset: Asset
+    timeout_seconds: float = Field(default=10, gt=0, le=60)
