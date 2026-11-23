@@ -20,6 +20,7 @@ from tradingagents.agents import (
     create_sentiment_analyst,
     create_trader,
 )
+from tradingagents.agents.analysts.crypto_analyst import create_crypto_analyst
 from tradingagents.agents.analysts.turn import WRAP_UP
 from tradingagents.agents.state import AgentState
 
@@ -77,9 +78,15 @@ def _analyst_graph(spec, agent, max_tool_rounds: int):
         return "wrap_up" if rounds(state["messages"]) >= max_tool_rounds else "agent"
 
     def wrap_up(state):
-        repeated = ", ".join(f"{name} x{n}" for name, n in Counter(calls(state["messages"])).most_common())
-        logger.warning("%s used its %d tool rounds (%s); asking for its report",
-                       spec.agent_node, max_tool_rounds, repeated)
+        repeated = ", ".join(
+            f"{name} x{n}" for name, n in Counter(calls(state["messages"])).most_common()
+        )
+        logger.warning(
+            "%s used its %d tool rounds (%s); asking for its report",
+            spec.agent_node,
+            max_tool_rounds,
+            repeated,
+        )
         return agent({**state, "messages": [*state["messages"], HumanMessage(WRAP_UP)]})
 
     graph.add_node("tools", ToolNode(list(spec.tools)))
@@ -123,6 +130,7 @@ class GraphSetup:
         plan = build_analyst_execution_plan(selected_analysts)
 
         analyst_factories = {
+            "crypto": lambda: create_crypto_analyst(self.quick_thinking_llm),
             "market": lambda: create_market_analyst(self.quick_thinking_llm),
             "social": lambda: create_sentiment_analyst(self.quick_thinking_llm),
             "news": lambda: create_news_analyst(self.quick_thinking_llm),
@@ -142,8 +150,10 @@ class GraphSetup:
         workflow = StateGraph(AgentState)
 
         for spec in plan.specs:
-            workflow.add_node(spec.agent_node,
-                              _analyst_graph(spec, analyst_factories[spec.key](), self.max_tool_rounds))
+            workflow.add_node(
+                spec.agent_node,
+                _analyst_graph(spec, analyst_factories[spec.key](), self.max_tool_rounds),
+            )
 
         workflow.add_node("Bull Researcher", bull_researcher_node)
         workflow.add_node("Bear Researcher", bear_researcher_node)

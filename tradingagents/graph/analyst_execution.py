@@ -43,6 +43,11 @@ ANALYST_NODE_SPECS: dict[str, AnalystNodeSpec] = {
         report_key="fundamentals_report",
         tools=fundamentals_analyst.TOOLS,
     ),
+    "crypto": AnalystNodeSpec(
+        key="crypto",
+        agent_node="Crypto Analyst",
+        report_key="crypto_report",
+    ),
 }
 
 
@@ -60,5 +65,3 @@ def build_analyst_execution_plan(
         raise ValueError("at least one analyst must be selected")
 
     return AnalystExecutionPlan(specs=specs)
-
-
