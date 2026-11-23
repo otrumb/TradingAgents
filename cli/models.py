@@ -8,6 +8,7 @@ class AnalystType(StrEnum):
     SOCIAL = "social"
     NEWS = "news"
     FUNDAMENTALS = "fundamentals"
+    CRYPTO = "crypto"
 
 
 class AssetType(StrEnum):
