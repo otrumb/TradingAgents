@@ -73,7 +73,9 @@ def public_wire(monkeypatch: pytest.MonkeyPatch) -> None:
         response.url = request.url or ""
         response.encoding = "utf-8"
         payload = "{}"
-        if url.path.endswith("premiumIndex"):
+        if url.path.endswith(("fundingRate", "openInterestHist")):
+            payload = "[]"
+        elif url.path.endswith("premiumIndex"):
             payload = json.dumps(
                 {
                     "symbol": symbol,

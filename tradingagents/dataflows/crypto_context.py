@@ -11,6 +11,7 @@ import requests
 from pydantic import ValidationError
 
 from .crypto_chain import parse_growth, parse_stables, parse_tvl
+from .crypto_derivatives import collect_derivatives
 from .crypto_exchange import (
     parse_book,
     parse_dvol,
@@ -244,4 +245,6 @@ def collect_crypto_context(request: SnapshotRequest) -> CryptoContext:
                 ),
             ),
         )
-    return CryptoContext(asset=request.asset, snapshots=snapshots)
+    return CryptoContext(
+        asset=request.asset, snapshots=snapshots, derivatives=collect_derivatives(request)
+    )

@@ -6,6 +6,8 @@ from typing import Literal, Self
 
 from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, model_validator
 
+from .crypto_derivatives_models import DerivativesHistory, DerivativesSummary
+
 Asset = Literal["ETH", "BTC", "SOL"]
 Source = Literal["binance", "deribit", "defillama", "growthepie", "solana_rpc"]
 Venue = Literal["Binance USD-M Futures", "Deribit", "chain aggregate", "Solana mainnet RPC"]
@@ -83,6 +85,7 @@ class CryptoContext(FrozenModel):
     asset: Asset
     semantics: Literal["current_snapshot"] = "current_snapshot"
     snapshots: tuple[SourceSnapshot, ...]
+    derivatives: DerivativesHistory | None = None
     unknowns: tuple[str, ...] = (
         "Current public snapshots only; historical point-in-time reconstruction unsupported.",
         "Chain activity describes networks, not token-holder demand or exchange-wide positioning.",
@@ -101,6 +104,7 @@ class CryptoContext(FrozenModel):
             semantics=self.semantics,
             sources=tuple(SourceSummary.from_snapshot(row) for row in self.snapshots),
             unknowns=self.unknowns,
+            derivatives=self.derivatives.summary() if self.derivatives else None,
         )
 
 
@@ -192,6 +196,7 @@ class CryptoContextSummary(FrozenModel):
     semantics: Literal["current_snapshot"]
     sources: tuple[SourceSummary, ...]
     unknowns: tuple[str, ...]
+    derivatives: DerivativesSummary | None = None
 
 
 class SnapshotRequest(FrozenModel):

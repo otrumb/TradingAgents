@@ -141,7 +141,10 @@ def test_sol_collection_uses_fixed_read_methods_and_keeps_partial_results(monkey
                     "askPrice": "150",
                     "askQty": "4",
                 }
-                payload = [row] if "globalLongShort" in url.path else row
+                if url.path.endswith(("fundingRate", "openInterestHist")):
+                    payload = []
+                else:
+                    payload = [row] if "globalLongShort" in url.path else row
             elif url.hostname == "api.llama.fi":
                 payload = [{"name": "Bitcoin", "tvl": 999}, {"name": "Solana", "tvl": 123}]
             else:
@@ -156,7 +159,14 @@ def test_sol_collection_uses_fixed_read_methods_and_keeps_partial_results(monkey
     monkeypatch.setattr(requests.Session, "send", send)
     context = collect_crypto_context(SnapshotRequest(asset="SOL"))
 
-    assert len(seen) == 8
+    assert len(seen) == 10
+    assert {urlsplit(request.url).path for request in seen[-2:]} == {
+        "/fapi/v1/fundingRate",
+        "/futures/data/openInterestHist",
+    }
+    assert context.derivatives.symbol == "SOLUSDT"
+    assert context.derivatives.funding_failure is None
+    assert context.derivatives.interest_failure is None
     assert len(context.snapshots) == 10
     binance = [s for s in context.snapshots if s.source == "binance"]
     assert len(binance) == 4
