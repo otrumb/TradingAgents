@@ -1,16 +1,43 @@
 from collections.abc import Iterable
 from dataclasses import dataclass
+from datetime import date, timedelta
+from itertools import pairwise
 from typing import Final
 
 import pandas as pd
+from pydantic import ValidationError
 from stockstats import wrap
 
 from tradingagents.dataflows.crypto_spot_models import SpotPriceContext
 from tradingagents.dataflows.errors import NoMarketDataError
+from tradingagents.dataflows.symbols import crypto_base
 from tradingagents.dataflows.vendors.yahoo.common import price_text
 from tradingagents.dataflows.vendors.yahoo.snapshot import DEFAULT_SNAPSHOT_INDICATORS
 
 CRYPTO_INDICATORS: Final = frozenset((*DEFAULT_SNAPSHOT_INDICATORS, "vwma"))
+MAX_MISSING_DATES: Final = 10
+
+
+@dataclass(frozen=True, slots=True)
+class DailyCoverage:
+    """Interior missing UTC days; explicit dates stay bounded for tool output."""
+
+    missing_day_count: int
+    missing_dates: tuple[date, ...]
+
+
+def daily_coverage(context: SpotPriceContext) -> DailyCoverage:
+    """Measure adjacent finalized days without assuming coverage at either boundary."""
+    count = 0
+    dates: list[date] = []
+    for previous, current in pairwise(context.daily_candles):
+        missing = (current.open_time - previous.open_time).days - 1
+        count += missing
+        dates.extend(
+            previous.open_time.date() + timedelta(days=offset)
+            for offset in range(1, min(missing, MAX_MISSING_DATES - len(dates)) + 1)
+        )
+    return DailyCoverage(count, tuple(dates))
 
 
 @dataclass(frozen=True, slots=True)
@@ -25,7 +52,14 @@ class UnsupportedCryptoIndicatorError(ValueError):
 
 
 def parse_crypto_market_data(payload: str, symbol: str) -> tuple[SpotPriceContext, pd.DataFrame]:
-    context = SpotPriceContext.model_validate_json(payload)
+    try:
+        context = SpotPriceContext.model_validate_json(payload)
+    except ValidationError as exc:
+        raise NoMarketDataError(symbol, symbol, "invalid Binance Spot market evidence") from exc
+    if crypto_base(symbol) != context.asset:
+        raise NoMarketDataError(
+            symbol, symbol, "Binance Spot evidence does not match requested symbol"
+        )
     if not context.daily_candles:
         raise NoMarketDataError(symbol, symbol, "no finalized Binance Spot daily candles")
     frame = pd.DataFrame(
@@ -44,6 +78,7 @@ def parse_crypto_market_data(payload: str, symbol: str) -> tuple[SpotPriceContex
 
 def provenance(context: SpotPriceContext) -> str:
     latest = context.daily_candles[-1]
+    coverage = daily_coverage(context)
     return "\n".join(
         (
             "source: https://data-api.binance.vision",
@@ -61,6 +96,10 @@ def provenance(context: SpotPriceContext) -> str:
             ),
             f"cutoff: {latest.cutoff.isoformat()}",
             f"rows: {len(context.daily_candles)}",
+            f"coverage: {'warning' if coverage.missing_day_count else 'contiguous'}",
+            f"missing_day_count: {coverage.missing_day_count}",
+            f"missing_dates: {', '.join(day.isoformat() for day in coverage.missing_dates) or 'none'}",
+            f"missing_dates_omitted: {coverage.missing_day_count - len(coverage.missing_dates)}",
         )
     )
 
