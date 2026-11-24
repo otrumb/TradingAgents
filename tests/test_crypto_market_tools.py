@@ -78,6 +78,9 @@ def test_crypto_tools_share_finalized_binance_rows(monkeypatch, indicator):
     )
 
     latest = context.daily_candles[-1]
+    if indicator == "close_200_sma":
+        assert indicator_result.startswith("NO_DATA_AVAILABLE")
+        return
     assert latest.open_time.date().isoformat() in raw
     assert str(latest.close) in raw
     assert latest.open_time.date().isoformat() in indicator_result
@@ -197,14 +200,19 @@ def test_market_provenance_preserves_current_and_historical_finality(render, arg
     if historical:
         day = datetime(2026, 6, 1, tzinfo=UTC).date()
         context = SpotPriceContext(
-            asset="BTC", semantics="historical_finalized", analysis_date=day,
+            asset="BTC",
+            semantics="historical_finalized",
+            analysis_date=day,
             daily_candles=tuple(
-                CompletedDailyCandle.model_validate(candle.model_dump() | {
-                    "analysis_date": day,
-                    "server_time": None,
-                    "cutoff": datetime(2026, 6, 2, tzinfo=UTC),
-                    "finality_lag_ms": 0,
-                })
+                CompletedDailyCandle.model_validate(
+                    candle.model_dump()
+                    | {
+                        "analysis_date": day,
+                        "server_time": None,
+                        "cutoff": datetime(2026, 6, 2, tzinfo=UTC),
+                        "finality_lag_ms": 0,
+                    }
+                )
                 for candle in context.daily_candles
             ),
         )
@@ -219,9 +227,7 @@ def test_market_provenance_preserves_current_and_historical_finality(render, arg
     assert facts["cutoff"] == (
         "2026-06-02T00:00:00+00:00" if historical else "2026-06-01T00:00:00.001000+00:00"
     )
-    assert facts["server_time"] == (
-        "null" if historical else "2026-06-01T00:00:05.001000+00:00"
-    )
+    assert facts["server_time"] == ("null" if historical else "2026-06-01T00:00:05.001000+00:00")
     if historical:
         assert facts["analysis_date"] == "2026-06-01"
     else:

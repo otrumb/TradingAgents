@@ -121,6 +121,10 @@ def test_gap_warning_keeps_usable_rows_on_each_surface(context, surface):
         "BTC-USD", *args, asset_type="crypto", crypto_market_data=evidence.model_dump_json()
     )
 
+    if render is market_tools.get_indicators.func:
+        assert result.startswith("NO_DATA_AVAILABLE")
+        assert "requires 14 finalized rows; available 6" in result
+        return
     facts = dict(line.split(": ", 1) for line in result.splitlines() if ": " in line)
     assert facts["rows"] == "6"
     assert facts["missing_day_count"] == "1"
@@ -161,6 +165,21 @@ def test_matching_symbol_aliases_keep_evidence(context, symbol):
 
 
 def test_crypto_indicator_programming_errors_propagate(context, monkeypatch):
+    context = SpotPriceContext(
+        asset="BTC",
+        daily_candles=tuple(
+            CompletedDailyCandle.model_validate(
+                c.model_dump()
+                | {
+                    "open_time": c.open_time - timedelta(days=7),
+                    "close_time": c.close_time - timedelta(days=7),
+                }
+            )
+            for c in context.daily_candles
+        )
+        + context.daily_candles,
+    )
+
     def broken_wrap(frame):
         raise ValueError("calculation bug")
 

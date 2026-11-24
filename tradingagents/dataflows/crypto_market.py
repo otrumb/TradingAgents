@@ -2,6 +2,7 @@ from collections.abc import Iterable
 from dataclasses import dataclass
 from datetime import date, timedelta
 from itertools import pairwise
+from math import isfinite
 from typing import Final
 
 import pandas as pd
@@ -15,6 +16,20 @@ from tradingagents.dataflows.vendors.yahoo.common import price_text
 from tradingagents.dataflows.vendors.yahoo.snapshot import DEFAULT_SNAPSHOT_INDICATORS
 
 CRYPTO_INDICATORS: Final = frozenset((*DEFAULT_SNAPSHOT_INDICATORS, "vwma"))
+INDICATOR_MIN_ROWS: Final = {
+    "close_10_ema": 10,
+    "close_50_sma": 50,
+    "close_200_sma": 200,
+    "rsi": 14,
+    "boll": 20,
+    "boll_ub": 20,
+    "boll_lb": 20,
+    "macd": 26,
+    "macds": 34,
+    "macdh": 34,
+    "atr": 14,
+    "vwma": 14,
+}
 MAX_MISSING_DATES: Final = 10
 
 
@@ -76,7 +91,16 @@ def parse_crypto_market_data(payload: str, symbol: str) -> tuple[SpotPriceContex
     return context, frame
 
 
-def provenance(context: SpotPriceContext) -> str:
+def provenance(context: SpotPriceContext, as_of_date: str | None = None) -> str:
+    if as_of_date is not None:
+        cutoff = date.fromisoformat(as_of_date)
+        context = context.model_copy(
+            update={
+                "daily_candles": tuple(
+                    candle for candle in context.daily_candles if candle.open_time.date() <= cutoff
+                ),
+            }
+        )
     latest = context.daily_candles[-1]
     coverage = daily_coverage(context)
     return "\n".join(
@@ -119,6 +143,16 @@ def crypto_stock_data(payload: str, symbol: str, start_date: str, end_date: str)
     )
 
 
+def indicator_unavailable_reason(stock_frame: pd.DataFrame, indicator: str) -> str | None:
+    """Reject partial warmup values and nonfinite latest calculations."""
+    required = INDICATOR_MIN_ROWS[indicator]
+    if len(stock_frame) < required:
+        return f"{indicator} requires {required} finalized rows; available {len(stock_frame)}"
+    if not isfinite(stock_frame[indicator].iloc[-1]):
+        return f"{indicator} latest value is nonfinite"
+    return None
+
+
 def crypto_indicators(
     payload: str, symbol: str, indicator: str, as_of_date: str, look_back_days: int
 ) -> str:
@@ -131,13 +165,18 @@ def crypto_indicators(
             symbol, symbol, f"no finalized daily rows on or before {as_of_date}"
         )
     stock_frame = wrap(frame.copy())
-    stock_frame[indicator]
+    reason = indicator_unavailable_reason(stock_frame, indicator)
+    if reason is not None:
+        raise NoMarketDataError(symbol, symbol, reason)
     values = stock_frame.tail(max(1, min(look_back_days, 30)))[["Date", indicator]]
     rows = "\n".join(
-        f"{row['Date']:%Y-%m-%d}: {'N/A' if pd.isna(row[indicator]) else row[indicator]}"
-        for _, row in values.iterrows()
+        f"{row['Date']:%Y-%m-%d}: "
+        f"{'N/A' if position < INDICATOR_MIN_ROWS[indicator] or not isfinite(row[indicator]) else row[indicator]}"
+        for position, (_, row) in enumerate(values.iterrows(), len(frame) - len(values) + 1)
     )
-    return f"## {indicator} values through {as_of_date}\n\n{provenance(context)}\n\n{rows}"
+    return (
+        f"## {indicator} values through {as_of_date}\n\n{provenance(context, as_of_date)}\n\n{rows}"
+    )
 
 
 def crypto_verified_snapshot(
@@ -165,7 +204,7 @@ def crypto_verified_snapshot(
         f"- Requested analysis date: {as_of_date}",
         f"- Latest trading row used: {latest['Date']:%Y-%m-%d}",
         "",
-        provenance(context),
+        provenance(context, as_of_date),
         "",
         "### Latest verified OHLCV row",
         "",
@@ -177,9 +216,12 @@ def crypto_verified_snapshot(
     lines.extend(("", "### Verified technical indicators (latest row)", ""))
     for indicator in selected:
         try:
-            stock_frame[indicator]
-            value = stock_frame.iloc[-1][indicator]
-            rendered = "N/A" if pd.isna(value) else price_text(value)
+            reason = indicator_unavailable_reason(stock_frame, indicator)
+            rendered = (
+                f"N/A ({reason})"
+                if reason is not None
+                else price_text(stock_frame[indicator].iloc[-1])
+            )
         except (KeyError, ValueError, TypeError) as exc:
             rendered = f"N/A ({type(exc).__name__})"
         lines.append(f"- {indicator}: {rendered}")
