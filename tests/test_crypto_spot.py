@@ -1,5 +1,5 @@
 import json
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
 from decimal import Decimal
 from urllib.parse import parse_qs, urlsplit
 
@@ -9,7 +9,11 @@ from pydantic import ValidationError
 
 from tradingagents.dataflows.crypto_models import SnapshotRequest
 from tradingagents.dataflows.crypto_spot import collect_spot_prices
-from tradingagents.dataflows.crypto_spot_models import IntradayPrice, utc_milliseconds
+from tradingagents.dataflows.crypto_spot_models import (
+    IntradayPrice,
+    SpotPriceRequest,
+    utc_milliseconds,
+)
 
 OPEN = 1704067200000
 CLOSE = OPEN + 86400000 - 1
@@ -54,6 +58,9 @@ def spot_wire(monkeypatch):
         if url.path == "/api/v3/klines":
             query = parse_qs(url.query)
             assert query.pop("symbol")[0] in {"BTCUSDT", "ETHUSDT", "SOLUSDT"}
+            end_time = query.pop("endTime", None)
+            if end_time is not None:
+                assert end_time == [str(CLOSE)]
             assert query == {
                 "interval": ["1d"],
                 "timeZone": ["0"],
@@ -109,6 +116,16 @@ def test_symbol_mapping_and_serialized_provenance(spot_wire, asset):
     assert candle.symbol == f"{asset}USDT"
     assert candle.venue == "Binance Spot"
     assert candle.source == "https://data-api.binance.vision"
+    serialized = json.loads(result.model_dump_json())
+    for observation, endpoint, data_source in [
+        (serialized["daily_candles"][0], "/api/v3/klines", "Database"),
+        (serialized["intraday"], "/api/v3/ticker/price", "Memory"),
+    ]:
+        assert observation["provider"] == "binance"
+        assert observation["market"] == "spot"
+        assert observation["base_url"] == "https://data-api.binance.vision"
+        assert observation["endpoint"] == endpoint
+        assert observation["data_source"] == data_source
     assert candle.server_time == utc_milliseconds(CLOSE + 5001)
     assert candle.cutoff == utc_milliseconds(CLOSE + 1)
     assert candle.open_time == datetime(2024, 1, 1, tzinfo=UTC)
@@ -156,3 +173,50 @@ def test_intraday_cannot_be_constructed_from_daily_candle(spot_wire):
 
     with pytest.raises(ValidationError):
         IntradayPrice.model_validate(result.daily_candles[-1].model_dump())
+
+
+@pytest.mark.parametrize("asset", ["BTC", "ETH", "SOL"])
+def test_historical_day_uses_end_time_and_filters_future_rows(spot_wire, asset, monkeypatch):
+    del spot_wire["/api/v3/time"]
+    del spot_wire["/api/v3/ticker/price"]
+    boundary = row()
+    boundary[6] = CLOSE + 1
+    spot_wire["/api/v3/klines"] = [row(OPEN + 86400000), boundary, row()]
+    original_send = requests.Session.send
+
+    def historical_send(session, request, **kwargs):
+        assert parse_qs(urlsplit(request.url).query)["endTime"] == ["1704153599999"]
+        return original_send(session, request, **kwargs)
+
+    monkeypatch.setattr(requests.Session, "send", historical_send)
+
+    result = collect_spot_prices(SpotPriceRequest(asset=asset, analysis_date="2024-01-01"))
+
+    assert result.daily_failure is None
+    assert result.semantics == "historical_finalized"
+    assert result.analysis_date == date(2024, 1, 1)
+    assert result.intraday is None and result.intraday_failure is None
+    assert [(c.symbol, c.close_time, c.close) for c in result.daily_candles] == [
+        (f"{asset}USDT", datetime(2024, 1, 1, 23, 59, 59, 999000, tzinfo=UTC), Decimal("110"))
+    ]
+    candle = result.daily_candles[0]
+    assert candle.cutoff == datetime(2024, 1, 2, tzinfo=UTC)
+    assert candle.server_time is None
+    assert candle.finality_lag_ms == 0
+    assert candle.data_source == "Database"
+    summary = result.summary()
+    assert summary.analysis_date == date(2024, 1, 1)
+    assert summary.semantics == "historical_finalized"
+    assert summary.latest_finalized == candle
+
+
+def test_historical_failure_never_falls_back_to_current_evidence(spot_wire):
+    del spot_wire["/api/v3/time"]
+    del spot_wire["/api/v3/ticker/price"]
+    spot_wire["/api/v3/klines"] = "rate_limit"
+
+    result = collect_spot_prices(SpotPriceRequest(asset="BTC", analysis_date="2024-01-01"))
+
+    assert result.daily_candles == ()
+    assert result.daily_failure.kind == "http"
+    assert result.intraday is None and result.intraday_failure is None

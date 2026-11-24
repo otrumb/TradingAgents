@@ -1,6 +1,6 @@
-"""GET-only Binance public spot collection; no historical or execution interface."""
+"""GET-only Binance public Spot collection for current and dated daily evidence."""
 
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime, time, timedelta
 from typing import Final
 
 import requests
@@ -13,6 +13,7 @@ from .crypto_spot_models import (
     KlineRow,
     ServerClock,
     SpotPriceContext,
+    SpotPriceRequest,
     SpotSymbol,
     TickerPrice,
     utc_milliseconds,
@@ -32,9 +33,10 @@ def public_get(session: requests.Session, path: str, timeout: float) -> str:
         return response.text
 
 
-def collect_spot_prices(request: SnapshotRequest) -> SpotPriceContext:
+def collect_spot_prices(request: SpotPriceRequest | SnapshotRequest) -> SpotPriceContext:
     """Keep clock/candle failure local; ticker remains separate usable evidence."""
     symbol = SYMBOL.validate_python(f"{request.asset}USDT")
+    dated = SpotPriceRequest.model_validate(request.model_dump())
     daily: tuple[CompletedDailyCandle, ...] = ()
     intraday = None
     server_time = None
@@ -43,15 +45,23 @@ def collect_spot_prices(request: SnapshotRequest) -> SpotPriceContext:
     with requests.Session() as session:
         session.trust_env = False
         try:
-            clock = ServerClock.model_validate_json(
-                public_get(session, "/api/v3/time", request.timeout_seconds)
-            )
-            server_time = utc_milliseconds(clock.serverTime)
-            cutoff = server_time - timedelta(milliseconds=5000)
+            path = f"/api/v3/klines?symbol={symbol}&interval=1d&timeZone=0&limit=365"
+            if dated.analysis_date is None:
+                clock = ServerClock.model_validate_json(
+                    public_get(session, "/api/v3/time", request.timeout_seconds)
+                )
+                server_time = utc_milliseconds(clock.serverTime)
+                cutoff = server_time - timedelta(milliseconds=5000)
+            else:
+                cutoff = datetime.combine(dated.analysis_date, time.min, UTC) + timedelta(days=1)
+                end_time = (cutoff - datetime(1970, 1, 1, tzinfo=UTC)) // timedelta(
+                    milliseconds=1
+                ) - 1
+                path += f"&endTime={end_time}"
             rows = ROWS.validate_json(
                 public_get(
                     session,
-                    f"/api/v3/klines?symbol={symbol}&interval=1d&timeZone=0&limit=365",
+                    path,
                     request.timeout_seconds,
                 )
             )
@@ -64,6 +74,8 @@ def collect_spot_prices(request: SnapshotRequest) -> SpotPriceContext:
                             symbol=symbol,
                             retrieved_at=retrieved_at,
                             server_time=server_time,
+                            analysis_date=dated.analysis_date,
+                            finality_lag_ms=5000 if dated.analysis_date is None else 0,
                             cutoff=cutoff,
                             open_time=utc_milliseconds(row[0]),
                             close_time=utc_milliseconds(row[6]),
@@ -89,6 +101,14 @@ def collect_spot_prices(request: SnapshotRequest) -> SpotPriceContext:
             daily_failure = SourceFailure(kind="parse", detail=str(exc))
         if daily_failure is not None:
             daily = ()
+        if dated.analysis_date is not None:
+            return SpotPriceContext(
+                asset=request.asset,
+                semantics="historical_finalized",
+                analysis_date=dated.analysis_date,
+                daily_candles=daily,
+                daily_failure=daily_failure,
+            )
         try:
             ticker = TickerPrice.model_validate_json(
                 public_get(
