@@ -52,7 +52,11 @@ def get_indicators(
     asset_type: Annotated[str, InjectedState("asset_type")] = "stock",
     crypto_market_data: Annotated[str, InjectedState("crypto_market_data")] = "",
 ) -> str:
-    """Retrieve technical indicator values for the run instrument."""
+    """Retrieve technical indicator values for the run instrument.
+
+    Crypto supports rsi, macd, macds, macdh, close_10_ema, close_50_sma,
+    close_200_sma, boll, boll_ub, boll_lb, atr and vwma; renders up to 30 rows.
+    """
     curr_date = as_of(curr_date, trade_date)
     indicators = [item.strip().lower() for item in indicator.split(",") if item.strip()]
     results = []

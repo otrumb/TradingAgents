@@ -1,4 +1,6 @@
 from collections.abc import Iterable
+from dataclasses import dataclass
+from typing import Final
 
 import pandas as pd
 from stockstats import wrap
@@ -7,6 +9,19 @@ from tradingagents.dataflows.crypto_spot_models import SpotPriceContext
 from tradingagents.dataflows.errors import NoMarketDataError
 from tradingagents.dataflows.vendors.yahoo.common import price_text
 from tradingagents.dataflows.vendors.yahoo.snapshot import DEFAULT_SNAPSHOT_INDICATORS
+
+CRYPTO_INDICATORS: Final = frozenset((*DEFAULT_SNAPSHOT_INDICATORS, "vwma"))
+
+
+@dataclass(frozen=True, slots=True)
+class UnsupportedCryptoIndicatorError(ValueError):
+    indicator: str
+
+    def __str__(self) -> str:
+        return (
+            f"Unsupported crypto indicator: {self.indicator}. "
+            f"Supported indicators: {', '.join(sorted(CRYPTO_INDICATORS))}"
+        )
 
 
 def parse_crypto_market_data(payload: str, symbol: str) -> tuple[SpotPriceContext, pd.DataFrame]:
@@ -39,7 +54,11 @@ def provenance(context: SpotPriceContext) -> str:
             "timezone: UTC",
             "finality: closed",
             f"finality_lag_ms: {latest.finality_lag_ms}",
-            f"server_time: {latest.server_time.isoformat()}",
+            *(
+                (f"analysis_date: {latest.analysis_date.isoformat()}", "server_time: null")
+                if latest.analysis_date is not None
+                else (f"server_time: {latest.server_time.isoformat()}",)
+            ),
             f"cutoff: {latest.cutoff.isoformat()}",
             f"rows: {len(context.daily_candles)}",
         )
@@ -57,13 +76,15 @@ def crypto_stock_data(payload: str, symbol: str, start_date: str, end_date: str)
         )
     return (
         f"# Crypto daily OHLCV for {symbol} from {start_date} to {end_date}\n"
-        f"{provenance(context)}\n\n{selected.to_csv(index=False)}"
+        f"{provenance(context)}\n\n{selected.tail(30).to_csv(index=False)}"
     )
 
 
 def crypto_indicators(
     payload: str, symbol: str, indicator: str, as_of_date: str, look_back_days: int
 ) -> str:
+    if indicator not in CRYPTO_INDICATORS:
+        raise UnsupportedCryptoIndicatorError(indicator)
     context, frame = parse_crypto_market_data(payload, symbol)
     frame = frame[frame["Date"] <= pd.to_datetime(as_of_date)]
     if frame.empty:
@@ -72,7 +93,7 @@ def crypto_indicators(
         )
     stock_frame = wrap(frame.copy())
     stock_frame[indicator]
-    values = stock_frame.tail(max(1, look_back_days))[["Date", indicator]]
+    values = stock_frame.tail(max(1, min(look_back_days, 30)))[["Date", indicator]]
     rows = "\n".join(
         f"{row['Date']:%Y-%m-%d}: {'N/A' if pd.isna(row[indicator]) else row[indicator]}"
         for _, row in values.iterrows()
@@ -87,6 +108,10 @@ def crypto_verified_snapshot(
     look_back_days: int,
     indicators: Iterable[str] = DEFAULT_SNAPSHOT_INDICATORS,
 ) -> str:
+    selected = tuple(indicators)
+    for indicator in selected:
+        if indicator not in CRYPTO_INDICATORS:
+            raise UnsupportedCryptoIndicatorError(indicator)
     context, frame = parse_crypto_market_data(payload, symbol)
     frame = frame[frame["Date"] <= pd.to_datetime(as_of_date)]
     if frame.empty:
@@ -111,7 +136,7 @@ def crypto_verified_snapshot(
         for field in ("Open", "High", "Low", "Close", "Volume")
     )
     lines.extend(("", "### Verified technical indicators (latest row)", ""))
-    for indicator in indicators:
+    for indicator in selected:
         try:
             stock_frame[indicator]
             value = stock_frame.iloc[-1][indicator]

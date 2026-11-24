@@ -6,6 +6,7 @@ from collections.abc import Mapping
 from typing import Any
 
 from tradingagents.dataflows.date_window import is_historical
+from tradingagents.dataflows.symbols import crypto_base
 from tradingagents.dataflows.vendors.yahoo.fundamentals import get_company_profile
 
 logger = logging.getLogger(__name__)
@@ -59,7 +60,7 @@ def _clean_identity_value(value: Any) -> str | None:
     return cleaned
 
 
-def resolve_instrument_identity(ticker: str) -> dict:
+def resolve_instrument_identity(ticker: str, asset_type: str = "stock") -> dict:
     """Resolve deterministic identity metadata (company name, sector, …) for a ticker.
 
     This exists to stop the pipeline from hallucinating a *different* company
@@ -76,6 +77,19 @@ def resolve_instrument_identity(ticker: str) -> dict:
     Identity resolves for the same instrument the price path fetches
     (``XAUUSD`` -> ``GC=F``, #983).
     """
+    if asset_type == "crypto":
+        base = crypto_base(ticker) or ticker.strip().upper()
+        names = {"BTC": "Bitcoin", "ETH": "Ethereum", "SOL": "Solana"}
+        if base in names:
+            return {
+                "company_name": names[base],
+                "exchange": "Binance Spot",
+                "symbol": f"{base}USDT",
+                "quote_currency": "USDT",
+                "quote_type": "CRYPTOCURRENCY",
+                "source": "https://data-api.binance.vision",
+            }
+        return {}
     try:
         return _identity(ticker)
     except Exception as exc:  # noqa: BLE001 — fail open, never block the run
@@ -154,6 +168,11 @@ def build_instrument_context(
             details.append(f"Industry: {industry}")
         if identity.get("exchange"):
             details.append(f"Exchange: {identity['exchange']}")
+        if is_crypto and identity.get("symbol"):
+            details.append(
+                f"Market pair: {identity['symbol']}; quote currency: {identity['quote_currency']}; "
+                f"Source: {identity['source']}"
+            )
 
     if details:
         context += (

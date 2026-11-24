@@ -12,6 +12,41 @@ from tradingagents.agents.context import (
     get_instrument_context_from_state,
     resolve_instrument_identity,
 )
+from tradingagents.graph.trading_graph import TradingAgentsGraph
+
+
+@pytest.mark.parametrize(
+    "ticker, name, pair",
+    (
+        ("BTC-USD", "Bitcoin", "BTCUSDT"),
+        ("ETHUSDT", "Ethereum", "ETHUSDT"),
+        ("SOL", "Solana", "SOLUSDT"),
+    ),
+)
+def test_supported_crypto_identity_uses_binance_without_yfinance(ticker, name, pair):
+    _identity.cache_clear()
+    with patch("tradingagents.dataflows.vendors.yahoo.market.yf.Ticker") as vendor:
+        identity = resolve_instrument_identity(ticker, "crypto")
+        graph = TradingAgentsGraph.__new__(TradingAgentsGraph)
+        context = graph.resolve_instrument_context(ticker, "crypto")
+    vendor.assert_not_called()
+    assert identity["company_name"] == name
+    assert identity["exchange"] == "Binance Spot"
+    assert identity["symbol"] == pair
+    assert identity["quote_currency"] == "USDT"
+    assert identity["source"] == "https://data-api.binance.vision"
+    assert pair in context
+    assert "Binance Spot" in context
+    assert "https://data-api.binance.vision" in context
+
+
+def test_stock_sol_keeps_yfinance_identity():
+    _identity.cache_clear()
+    with patch("tradingagents.dataflows.vendors.yahoo.market.yf.Ticker") as vendor:
+        vendor.return_value.info = {"longName": "Emeren Group Ltd"}
+        identity = resolve_instrument_identity("SOL", "stock")
+    vendor.assert_called_once_with("SOL")
+    assert identity["company_name"] == "Emeren Group Ltd"
 
 
 @pytest.mark.unit
