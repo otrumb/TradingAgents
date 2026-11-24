@@ -2,6 +2,8 @@
 
 from typing import Any
 
+from tradingagents.agents.rating import action_adjusted_return, parse_rating
+
 
 class Reflector:
     """Handles reflection on trading decisions."""
@@ -25,7 +27,9 @@ class Reflector:
             "which may be shorter than the horizon the decision was written for.\n"
             "Write exactly 2-4 sentences of plain prose (no bullets, no headers, no markdown).\n\n"
             "Cover in order:\n"
-            f"1. What the {holding_days}-day alpha shows about the directional call (cite the figure), "
+            f"1. What the {holding_days}-day action-adjusted alpha shows about the directional call (cite the figure); "
+            "positive adjusted returns support the call and negative ones oppose it. "
+            "An unscored call claims no direction: do not infer success or failure from factual returns. "
             "and say so plainly if the window is too short to judge the thesis.\n"
             "2. Which part of the investment thesis this window supports or undercuts.\n"
             "3. One concrete lesson to apply to the next similar analysis.\n\n"
@@ -40,6 +44,8 @@ class Reflector:
         alpha_return: float,
         benchmark_name: str = "SPY",
         holding_days: int = 5,
+        *,
+        rating: str | None = None,
     ) -> str:
         """Single reflection call on the final trade decision with outcome context.
 
@@ -49,13 +55,24 @@ class Reflector:
         for US tickers, ``"^N225"`` for ``.T`` listings); defaults to SPY for
         callers that haven't been updated to thread the benchmark through.
         """
+        rating = rating if rating is not None else parse_rating(final_decision)
+        adjusted_raw = action_adjusted_return(rating, raw_return)
+        adjusted_alpha = action_adjusted_return(rating, alpha_return)
+        adjusted = "Directional outcome: unscored (no direction claimed)\n"
+        if adjusted_raw is not None and adjusted_alpha is not None:
+            adjusted = (
+                f"Action-adjusted raw return: {adjusted_raw:+.1%}\n"
+                f"Action-adjusted alpha vs {benchmark_name}: {adjusted_alpha:+.1%}\n"
+            )
         messages = [
             ("system", self._system_prompt(holding_days)),
             (
                 "human",
                 (
+                    f"Rating: {rating}\n"
                     f"Raw return over {holding_days} trading days: {raw_return:+.1%}\n"
-                    f"Alpha vs {benchmark_name}: {alpha_return:+.1%}\n\n"
+                    f"Alpha vs {benchmark_name}: {alpha_return:+.1%}\n"
+                    f"{adjusted}\n"
                     f"Final Decision:\n{final_decision}"
                 ),
             ),

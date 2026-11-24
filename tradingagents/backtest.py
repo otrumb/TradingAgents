@@ -23,7 +23,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from pathlib import Path
 
-from tradingagents.agents.rating import RATING_REVIEW
+from tradingagents.agents.rating import RATING_REVIEW, action_adjusted_return
 from tradingagents.dataflows.date_window import get_current_date
 from tradingagents.dataflows.symbols import safe_ticker_component
 from tradingagents.graph.trading_graph import TradingAgentsGraph
@@ -86,11 +86,6 @@ class BacktestResult:
     settlement_failures: list[tuple[str, str]] = field(default_factory=list)
 
 
-# What each rating claims will happen, so an outcome can be scored against it.
-# Hold claims no direction, so nothing about alpha proves it right or wrong.
-_DIRECTION = {"Buy": 1, "Overweight": 1, "Hold": 0, "Underweight": -1, "Sell": -1}
-
-
 @dataclass
 class RatingScore:
     count: int
@@ -107,11 +102,16 @@ class BacktestSummary:
     holding: str = ""
 
     def render(self) -> str:
-        lines = [f"Resolved cells: {self.resolved} · pending: {self.pending}"
-                 + (f" · unscored: {self.unscored}" if self.unscored else "")]
+        lines = [
+            f"Resolved cells: {self.resolved} · pending: {self.pending}"
+            + (f" · unscored: {self.unscored}" if self.unscored else "")
+        ]
         for rating, score in self.by_rating.items():
-            called = (f"called the direction {score.hit_rate:.0%}"
-                      if score.hit_rate is not None else "no direction claimed")
+            called = (
+                f"called the direction {score.hit_rate:.0%}"
+                if score.hit_rate is not None
+                else "no direction claimed"
+            )
             lines.append(
                 f"- {rating}: n={score.count}, {called}, "
                 f"mean alpha {score.mean_alpha:+.2%} vs the benchmark"
@@ -166,8 +166,11 @@ def run_backtest(
     else:
         run_id = _new_run(runs)
     run_dir = runs / run_id
-    run_config = {**config, "results_dir": str(run_dir),
-                  "memory_log_path": str(run_dir / "trading_memory.md")}
+    run_config = {
+        **config,
+        "results_dir": str(run_dir),
+        "memory_log_path": str(run_dir / "trading_memory.md"),
+    }
 
     graph = TradingAgentsGraph(selected_analysts, config=run_config)
     result = BacktestResult(run_id=run_id, log_path=Path(run_config["memory_log_path"]))
@@ -206,7 +209,7 @@ def run_backtest(
 def summarize(source: BacktestResult | str | Path) -> BacktestSummary:
     """Score the settled decisions of a backtest, or of a memory log at a path, by rating."""
     if isinstance(source, BacktestResult):
-        path = source.log_path      # a run whose cells all failed wrote no log: nothing to score
+        path = source.log_path  # a run whose cells all failed wrote no log: nothing to score
     elif Path(source).is_file():
         path = Path(source)
     else:
@@ -214,23 +217,32 @@ def summarize(source: BacktestResult | str | Path) -> BacktestSummary:
     entries = TradingMemoryLog({"memory_log_path": str(path)}).load_entries()
     # A decision with no readable rating has no direction, so it can neither
     # count for nor against the system; it is reported as unscored instead.
-    resolved = [(e, _alpha(e)) for e in entries
-                if not e["pending"] and e["rating"] != RATING_REVIEW]
+    resolved = [
+        (e, _alpha(e)) for e in entries if not e["pending"] and e["rating"] != RATING_REVIEW
+    ]
     resolved = [(e, a) for e, a in resolved if a is not None]
     by_rating: dict[str, RatingScore] = {}
     for rating in dict.fromkeys(e["rating"] for e, _ in resolved):
         alphas = [a for e, a in resolved if e["rating"] == rating]
-        direction = _DIRECTION.get(rating, 0)
+        adjusted = [
+            value for a in alphas if (value := action_adjusted_return(rating, a)) is not None
+        ]
         by_rating[rating] = RatingScore(
             count=len(alphas),
-            hit_rate=(sum(a * direction > 0 for a in alphas) / len(alphas)) if direction else None,
+            hit_rate=(sum(a > 0 for a in adjusted) / len(adjusted)) if adjusted else None,
             mean_alpha=sum(alphas) / len(alphas),
         )
     unscored = sum(1 for e in entries if e["rating"] == RATING_REVIEW)
     # Report the window the outcomes were actually measured over, from the log.
-    windows = {f"{e['holding'][:-1]} trading days" for e, _ in resolved
-               if (e.get("holding") or "").endswith("d")}
-    return BacktestSummary(resolved=len(resolved),
-                           pending=len(entries) - len(resolved) - unscored,
-                           by_rating=by_rating, unscored=unscored,
-                           holding=", ".join(sorted(windows)) or "the configured window")
+    windows = {
+        f"{e['holding'][:-1]} trading days"
+        for e, _ in resolved
+        if (e.get("holding") or "").endswith("d")
+    }
+    return BacktestSummary(
+        resolved=len(resolved),
+        pending=len(entries) - len(resolved) - unscored,
+        by_rating=by_rating,
+        unscored=unscored,
+        holding=", ".join(sorted(windows)) or "the configured window",
+    )
