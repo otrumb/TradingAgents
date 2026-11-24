@@ -39,6 +39,7 @@ class AgentState(MessagesState):
     fundamentals_report: Annotated[str, "Report from the Fundamentals Analyst"]
     crypto_report: Annotated[str, "Read-only public crypto context report"]
     crypto_context_data: Annotated[str, "Canonical raw public crypto context for evidence sidecars"]
+    crypto_derivatives_data: Annotated[str, "Validated Binance USD-M historical evidence sidecar"]
     crypto_market_data: Annotated[
         str, "Full serialized analyzed SpotPriceContext collected once before analyst fan-out"
     ]

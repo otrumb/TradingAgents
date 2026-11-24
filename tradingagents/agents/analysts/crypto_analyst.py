@@ -19,6 +19,7 @@ class CryptoReport(TypedDict):
     messages: list[AIMessage]
     crypto_report: str
     crypto_context_data: str
+    crypto_derivatives_data: str
 
 
 def collect_crypto_report(ticker: str, trade_date: str, spot_prices: str = "") -> str:
@@ -56,6 +57,7 @@ def collect_crypto_report(ticker: str, trade_date: str, spot_prices: str = "") -
     return CryptoAnalystContext(
         asset=request.asset,
         snapshots=context.snapshots,
+        derivatives=context.derivatives,
         unknowns=context.unknowns,
         spot_prices=(
             SpotPriceContext.model_validate_json(spot_prices)
@@ -75,12 +77,15 @@ def create_crypto_analyst(llm: BaseChatModel) -> Callable[[AgentState], CryptoRe
         trade_date = state["trade_date"]
         context = collect_crypto_report(ticker, trade_date, state.get("crypto_market_data", ""))
         context_data = ""
+        derivatives_data = ""
         if date.fromisoformat(trade_date) != datetime.now(UTC).date() or not context.startswith(
             "{"
         ):
             report = context
         else:
             evidence = CryptoAnalystContext.model_validate_json(context)
+            if evidence.derivatives:
+                derivatives_data = evidence.derivatives.model_dump_json()
             context_data = CryptoContext(
                 asset=evidence.asset, snapshots=evidence.snapshots, unknowns=evidence.unknowns
             ).render()
@@ -98,7 +103,11 @@ def create_crypto_analyst(llm: BaseChatModel) -> Callable[[AgentState], CryptoRe
                         "You are a read-only crypto analyst. Analyze only supplied public "
                         "snapshots: positioning, derivatives, network activity, venue coverage, "
                         "timestamps, freshness and unknowns. Missing data is unavailable, not zero. "
-                        "Snapshots describe current context, not historical evidence. Do not "
+                        "Snapshots describe current context. Derivatives features summarize observed "
+                        "Binance USD-M history ending at retrieval, not historical report-date reconstruction. "
+                        "Funding mean uses arithmetic event rates; trend subtracts previous 7 UTC days "
+                        "from last 7 UTC days. OI deltas use hourly contract observations and nearest "
+                        "baseline within 30 minutes. Preserve horizons, counts, coverage and failures. Do not "
                         "mix spot_prices.latest_finalized (eligible completed UTC day) with "
                         "spot_prices.intraday (current price, never a daily close). State latest "
                         "eligible candle date, close, Binance Spot source, USDT quote, UTC interval, "
@@ -122,6 +131,7 @@ def create_crypto_analyst(llm: BaseChatModel) -> Callable[[AgentState], CryptoRe
             "messages": [AIMessage(content=report)],
             "crypto_report": report,
             "crypto_context_data": context_data,
+            "crypto_derivatives_data": derivatives_data,
         }
 
     return crypto_node

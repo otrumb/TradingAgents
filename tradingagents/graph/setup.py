@@ -63,6 +63,7 @@ def _analyst_graph(spec, agent, max_tool_rounds: int):
     fields = {spec.report_key: str}
     if spec.key == "crypto":
         fields["crypto_context_data"] = str
+        fields["crypto_derivatives_data"] = str
     output = TypedDict(f"{spec.key.capitalize()}Report", fields)
     graph = StateGraph(AgentState, output_schema=output)
     graph.add_node("agent", agent)

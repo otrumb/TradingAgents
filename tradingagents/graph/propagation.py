@@ -65,6 +65,7 @@ class Propagator:
             "news_report": "",
             "crypto_report": "",
             "crypto_context_data": "",
+            "crypto_derivatives_data": "",
             "crypto_market_data": crypto_market_data,
         }
 

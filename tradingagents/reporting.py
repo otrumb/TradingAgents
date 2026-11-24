@@ -11,6 +11,7 @@ from datetime import datetime
 from pathlib import Path
 
 from tradingagents.agents.rating import run_rating
+from tradingagents.dataflows.crypto_derivatives_models import DerivativesHistory
 from tradingagents.dataflows.crypto_models import CryptoContext
 from tradingagents.dataflows.crypto_spot_models import SpotPriceContext
 
@@ -133,6 +134,7 @@ def write_report_tree(
     for key, filename, model in (
         ("crypto_market_data", "crypto_spot.json", SpotPriceContext),
         ("crypto_context_data", "crypto_context.json", CryptoContext),
+        ("crypto_derivatives_data", "crypto_derivatives.json", DerivativesHistory),
     ):
         evidence_path = save_path / "evidence" / filename
         raw = final_state.get(key)
