@@ -26,6 +26,8 @@ def test_no_env_uses_built_in_defaults(monkeypatch):
     assert config["backend_url"] is None
     assert config["max_debate_rounds"] == 1
     assert config["checkpoint_enabled"] is False
+    assert config["holding_period_days"] == 5
+    assert config["crypto_holding_period_days"] == 7
 
 
 def test_string_overrides(monkeypatch):
@@ -49,13 +51,17 @@ def test_int_coercion(monkeypatch):
         monkeypatch,
         TRADINGAGENTS_MAX_DEBATE_ROUNDS="3",
         TRADINGAGENTS_MAX_RISK_ROUNDS="2",
+        TRADINGAGENTS_CRYPTO_HOLDING_PERIOD_DAYS="10",
     )
     assert config["max_debate_rounds"] == 3
     assert isinstance(config["max_debate_rounds"], int)
     assert config["max_risk_discuss_rounds"] == 2
     assert isinstance(config["max_risk_discuss_rounds"], int)
+    assert config["crypto_holding_period_days"] == 10
+    assert isinstance(config["crypto_holding_period_days"], int)
 
 
+# fmt: off
 @pytest.mark.parametrize(
     "raw,expected",
     [
@@ -66,6 +72,7 @@ def test_int_coercion(monkeypatch):
 def test_bool_coercion(monkeypatch, raw, expected):
     config = _config_with_env(monkeypatch, TRADINGAGENTS_CHECKPOINT_ENABLED=raw)
     assert config["checkpoint_enabled"] is expected
+# fmt: on
 
 
 def test_reasoning_thinking_overrides(monkeypatch):

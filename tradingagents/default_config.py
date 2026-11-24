@@ -7,6 +7,7 @@ _TRADINGAGENTS_HOME = os.path.join(os.path.expanduser("~"), ".tradingagents")
 # entry-point script changes required. Coercion is driven by the type
 # of the existing default, so users can keep writing plain strings in
 # their .env file.
+# fmt: off
 _ENV_OVERRIDES = {
     "TRADINGAGENTS_LLM_PROVIDER":         "llm_provider",
     "TRADINGAGENTS_DEEP_THINK_LLM":       "deep_think_llm",
@@ -22,6 +23,7 @@ _ENV_OVERRIDES = {
     "TRADINGAGENTS_MAX_TOOL_ROUNDS":      "max_tool_rounds",
     "TRADINGAGENTS_CHECKPOINT_ENABLED":   "checkpoint_enabled",
     "TRADINGAGENTS_BENCHMARK_TICKER":     "benchmark_ticker",
+    "TRADINGAGENTS_CRYPTO_HOLDING_PERIOD_DAYS": "crypto_holding_period_days",
     "TRADINGAGENTS_TEMPERATURE":          "temperature",
     "TRADINGAGENTS_LLM_MAX_RETRIES":      "llm_max_retries",
     "TRADINGAGENTS_MAX_TOKENS":           "max_tokens",
@@ -80,6 +82,7 @@ def build_default_config() -> dict:
     Read when the package is imported, as DEFAULT_CONFIG; call it again to see
     the environment as it is now.
     """
+    # fmt: off
     return _apply_env_overrides({
         "results_dir": os.getenv("TRADINGAGENTS_RESULTS_DIR") or os.path.join(_TRADINGAGENTS_HOME, "logs"),
         "data_cache_dir": os.getenv("TRADINGAGENTS_CACHE_DIR") or os.path.join(_TRADINGAGENTS_HOME, "cache"),
@@ -178,6 +181,7 @@ def build_default_config() -> dict:
         # Trading days from the first close after the analysis date over which a
         # decision's outcome is measured, for reflection and for the backtest figures.
         "holding_period_days": 5,
+        "crypto_holding_period_days": 7,
         "benchmark_ticker": None,
         "benchmark_map": {
             ".NS":  "^NSEI",       # NSE India (Nifty 50)
@@ -204,6 +208,7 @@ def build_default_config() -> dict:
         },
 
     })
+    # fmt: on
 
 
 DEFAULT_CONFIG = build_default_config()
