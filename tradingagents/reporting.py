@@ -6,10 +6,13 @@ CLI and ``TradingAgentsGraph.save_reports`` both call this, so a headless / API
 run produces the same on-disk report tree a CLI run does.
 """
 
+import json
 from datetime import datetime
 from pathlib import Path
 
 from tradingagents.agents.rating import run_rating
+from tradingagents.dataflows.crypto_models import CryptoContext
+from tradingagents.dataflows.crypto_spot_models import SpotPriceContext
 
 
 def analyst_names(keys) -> list[str]:
@@ -127,6 +130,21 @@ def write_report_tree(
     """
     save_path = Path(save_path)
     save_path.mkdir(parents=True, exist_ok=True)
+    for key, filename, model in (
+        ("crypto_market_data", "crypto_spot.json", SpotPriceContext),
+        ("crypto_context_data", "crypto_context.json", CryptoContext),
+    ):
+        evidence_path = save_path / "evidence" / filename
+        raw = final_state.get(key)
+        if raw:
+            evidence = model.model_validate_json(raw)
+            evidence_path.parent.mkdir(exist_ok=True)
+            evidence_path.write_text(
+                json.dumps(evidence.model_dump(mode="json"), sort_keys=True, indent=2),
+                encoding="utf-8",
+            )
+        else:
+            evidence_path.unlink(missing_ok=True)
     parts = _report_parts(final_state)
     sections = []
     for heading, folder, written in parts:
