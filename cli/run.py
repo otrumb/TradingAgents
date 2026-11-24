@@ -216,9 +216,6 @@ def run_analysis(checkpoint: bool | None = None, portfolio=None, flags=None):
         # The same initial state propagate() builds, with the resolved
         # instrument identity; the graph's Memory Log step settles past
         # decisions and loads their lessons alongside the analysts.
-        init_agent_state = graph.create_run_state(
-            selections["ticker"], selections["analysis_date"], selections["asset_type"], portfolio
-        )
         # Pass callbacks to graph config for tool execution tracking
         # (LLM tracking is handled separately via LLM constructor)
         args = graph.propagator.get_graph_args(callbacks=[stats_handler])
@@ -238,6 +235,9 @@ def run_analysis(checkpoint: bool | None = None, portfolio=None, flags=None):
         # try/finally tears the checkpointer down even if the stream raises.
         trace = []
         try:
+            init_agent_state = graph.create_run_state(
+                selections["ticker"], selections["analysis_date"], selections["asset_type"], portfolio
+            )
             for messages, chunk in graph.stream_run(graph.checkpoint_input(init_agent_state), **args):
                 for message in messages:
                     msg_id = getattr(message, "id", None)
