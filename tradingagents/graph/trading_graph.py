@@ -3,7 +3,7 @@ import json
 import logging
 import os
 from contextlib import contextmanager
-from datetime import datetime
+from datetime import UTC, date, datetime
 from pathlib import Path
 from typing import Any
 
@@ -11,8 +11,10 @@ import tradingagents
 from tradingagents.agents.context import build_instrument_context, resolve_instrument_identity
 from tradingagents.agents.rating import run_rating
 from tradingagents.dataflows.config import run_config, run_config_context, set_config
+from tradingagents.dataflows.crypto_spot import collect_spot_prices
+from tradingagents.dataflows.crypto_spot_models import SpotPriceRequest
 from tradingagents.dataflows.date_window import get_current_date, is_historical
-from tradingagents.dataflows.symbols import safe_ticker_component
+from tradingagents.dataflows.symbols import crypto_base, safe_ticker_component
 from tradingagents.default_config import DEFAULT_CONFIG
 from tradingagents.llm_clients import create_tier_client, tier_provider
 from tradingagents.memory import TradingMemoryLog, settlement
@@ -124,7 +126,7 @@ class TradingAgentsGraph:
         path and the CLI call this so the resolved identity reaches the whole
         graph regardless of entry point.
         """
-        identity = resolve_instrument_identity(ticker)
+        identity = resolve_instrument_identity(ticker, asset_type)
         return build_instrument_context(ticker, asset_type, identity, trade_date)
 
     def _memory_as_of(self, trade_date) -> str | None:
@@ -161,6 +163,7 @@ class TradingAgentsGraph:
             # before the Memory Log step would resume without the lessons.
             "analysts=parallel",
             "memory=parallel",
+            "spot=run-start-dated",
             f"settings={digest}",
         ])
 
@@ -298,12 +301,49 @@ class TradingAgentsGraph:
         and loads them alongside the analysts (see ``_memory_step``).
         """
         trade_date = _validate_trade_date(trade_date)
+        if getattr(self, "_resuming", False):
+            return None
+        current = date.fromisoformat(trade_date) == datetime.now(UTC).date()
+        analyzed = crypto_base(company_name) if asset_type == "crypto" else None
+        needed = {analyzed} if analyzed in {"BTC", "ETH", "SOL"} else set()
+        if (
+            asset_type == "crypto"
+            and current
+            and portfolio is not None
+            and portfolio.currency in ("USD", "USDT")
+        ):
+            needed.update(
+                crypto_base(p.ticker)
+                for p in portfolio.positions
+                if p.quantity != 0 and p.mark_price is None
+            )
+        spot_contexts = tuple(
+            collect_spot_prices(
+                SpotPriceRequest(
+                    asset=asset,
+                    analysis_date=None if current else date.fromisoformat(trade_date),
+                )
+            )
+            for asset in ("BTC", "ETH", "SOL")
+            if asset in needed
+        )
+        crypto_market_data = next(
+            (context.model_dump_json() for context in spot_contexts if context.asset == analyzed),
+            "",
+        )
         return self.propagator.create_initial_state(
             company_name,
             trade_date,
             asset_type=asset_type,
             instrument_context=self.resolve_instrument_context(company_name, asset_type, trade_date),
-            portfolio_context=portfolio.render(company_name, trade_date=trade_date) if portfolio is not None else "",
+            portfolio_context=portfolio.render(
+                company_name,
+                trade_date=trade_date,
+                spot_contexts=spot_contexts,
+            )
+            if portfolio is not None
+            else "",
+            crypto_market_data=crypto_market_data,
         )
 
     def _memory_step(self, state):
