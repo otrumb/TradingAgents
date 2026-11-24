@@ -4,6 +4,7 @@ from langchain_core.tools import tool
 from langgraph.prebuilt import InjectedState
 
 from tradingagents.dataflows.crypto_market import (
+    UnsupportedCryptoIndicatorError,
     crypto_indicators,
     crypto_stock_data,
     crypto_verified_snapshot,
@@ -37,7 +38,7 @@ def get_stock_data(
     if asset_type == "crypto":
         try:
             return crypto_stock_data(crypto_market_data, symbol, start_date, end_date)
-        except (NoMarketDataError, ValueError) as exc:
+        except NoMarketDataError as exc:
             return no_data_available(exc)
     return route_to_vendor("get_stock_data", symbol, start_date, end_date)
 
@@ -74,7 +75,11 @@ def get_indicators(
                 )
         except NoMarketDataError as exc:
             results.append(no_data_available(exc))
+        except UnsupportedCryptoIndicatorError as exc:
+            results.append(str(exc))
         except ValueError as exc:
+            if asset_type == "crypto":
+                raise
             results.append(str(exc))
     return "\n\n".join(results)
 
