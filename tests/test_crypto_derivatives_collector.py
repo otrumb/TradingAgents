@@ -213,3 +213,65 @@ def test_bulk_parse_failure_stays_compact():
     detail = collector.parse_failure(caught.value)
     assert len(detail) <= 240
     assert "secret" not in detail
+
+
+@pytest.mark.parametrize("latency_seconds", [0, 1, 13 * 3600])
+@pytest.mark.parametrize("future", [False, True])
+def test_collection_features_use_pre_network_anchor(monkeypatch, latency_seconds, future):
+    times = iter((NOW, NOW + timedelta(seconds=latency_seconds)))
+
+    class Clock(datetime):
+        @classmethod
+        def now(cls, tz=UTC):
+            return next(times)
+
+    def send(session, request, **kwargs):
+        params = parse_qs(urlsplit(request.url).query)
+        assert params["endTime"] == [str(int(NOW.timestamp() * 1000))]
+        if "fundingRate" in request.url:
+            assert params["startTime"] == [str(int((NOW - timedelta(days=30)).timestamp() * 1000))]
+            payload = (
+                [funding(hours=-1)]
+                if future
+                else [
+                    funding(hours=h, rate="0.003" if h <= 168 else "-0.001")
+                    for h in range(720, 0, -1)
+                ]
+            )
+        else:
+            assert params["startTime"] == [str(int((NOW - timedelta(hours=26)).timestamp() * 1000))]
+            payload = (
+                [interest(hours=-1)]
+                if future
+                else [interest(hours=h) for h in (25.5, 5.5, 2.5, 1.5)]
+            )
+        response = requests.Response()
+        response.request = request
+        response.status_code = 200
+        response._content = json.dumps(payload).encode()
+        response._content_consumed = True
+        return response
+
+    monkeypatch.setattr(collector, "datetime", Clock)
+    monkeypatch.setattr(requests.Session, "send", send)
+
+    result = collector.collect_derivatives(SnapshotRequest(asset="BTC"))
+
+    if future:
+        assert result.funding == result.interest == ()
+        assert result.funding_failure == "parse: funding request bounds"
+        assert result.interest_failure == "parse: OI request bounds/limit"
+        assert all(feature.status == "unavailable" for feature in result.features)
+    else:
+        mean, trend = result.features[:2]
+        assert mean.value == Decimal("-0.00006666666666666666666666666666666667")
+        assert trend.value == Decimal("0.004")
+        assert mean.windows[0].sample_count == 720
+        assert [window.sample_count for window in trend.windows] == [168, 168]
+        assert mean.windows[0].requested_end == NOW
+        assert all(feature.freshness == "fresh" for feature in result.features)
+        assert [feature.value for feature in result.features[2:]] == [Decimal(0)] * 6
+        assert [feature.baseline_target for feature in result.features[2::2]] == [
+            NOW - timedelta(hours=h) for h in (2.5, 5.5, 25.5)
+        ]
+    assert result.retrieved_at == NOW

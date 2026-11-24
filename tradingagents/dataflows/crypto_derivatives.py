@@ -168,7 +168,7 @@ def collect_derivatives(request: SnapshotRequest) -> DerivativesHistory:
     return with_features(
         DerivativesHistory(
             symbol=symbol,
-            retrieved_at=datetime.now(UTC),
+            retrieved_at=end,
             features=(),
             funding=funding,
             interest=interest,
