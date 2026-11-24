@@ -19,6 +19,7 @@ from tradingagents.dataflows.crypto_models import (
     SnapshotRequest,
     SourceSnapshot,
 )
+from tradingagents.dataflows.crypto_spot_models import SpotPriceContext, SpotPriceRequest
 
 
 @pytest.mark.parametrize(
@@ -168,3 +169,99 @@ def test_dvol_uses_latest_candle_close() -> None:
     result = parse_dvol('{"result":{"data":[[2000,11,12,10,13],[1000,21,22,20,23]]}}')
     assert result[0].value == Decimal(13)
     assert result[0].observed_at == datetime(1970, 1, 1, 0, 0, 2, tzinfo=UTC)
+
+
+def test_options_summary_aggregates_families_without_losing_missing_or_freshness() -> None:
+    fetched = datetime(2024, 1, 1, tzinfo=UTC)
+    metrics = parse_options(
+        json.dumps(
+            {
+                "result": [
+                    {
+                        "instrument_name": f"BTC-29MAR24-{strike}-C",
+                        "creation_timestamp": 1704067200000,
+                        "open_interest": oi,
+                        "volume": 0,
+                        "mark_iv": iv,
+                    }
+                    for strike, oi, iv in [(3000, 12, None), (4000, 8, 50)]
+                ]
+            }
+        )
+    )
+    snapshot = SourceSnapshot(
+        source="deribit",
+        venue="Deribit",
+        endpoint="https://example.com/options",
+        fetched_at=fetched,
+        observed_at=fetched,
+        resolution="instant",
+        coverage="BTC options",
+        metrics=metrics,
+        unknowns=(f"{metrics[2].name} [{metrics[2].coverage}]: unknown",),
+    )
+    context = CryptoContext(asset="BTC", snapshots=(snapshot,))
+
+    summary = context.summary().sources[0]
+
+    assert summary.metrics == ()
+    assert summary.option_instrument_count == 2
+    families = {family.name: family for family in summary.option_families}
+    assert families["option_open_interest"].total == Decimal(20)
+    assert families["option_volume_24h"].total == Decimal(0)
+    assert families["option_mark_iv"].total is None
+    assert families["option_mark_iv"].missing_count == 1
+    assert families["option_mark_iv"].minimum == Decimal(50)
+    assert summary.freshness_counts == {"unknown": 1}
+    assert summary.fetched_at == fetched
+    assert summary.observed_at == fetched
+    assert CryptoContext.model_validate_json(context.render()) == context
+    reordered = snapshot.model_copy(update={"metrics": tuple(reversed(metrics))})
+    assert CryptoContext(asset="BTC", snapshots=(reordered,)).summary() == context.summary()
+
+
+@pytest.mark.parametrize("asset", ["BTC", "ETH", "SOL"])
+@pytest.mark.parametrize("analysis_date", [None, "2024-01-01"])
+def test_spot_dated_request_round_trip(asset, analysis_date):
+    request = SpotPriceRequest(asset=asset, analysis_date=analysis_date)
+
+    restored = SpotPriceRequest.model_validate_json(request.model_dump_json())
+
+    assert restored == request
+    assert restored.asset == asset
+    assert (
+        restored.analysis_date.isoformat() == analysis_date
+        if analysis_date
+        else restored.analysis_date is None
+    )
+
+
+@pytest.mark.parametrize(
+    "raw",
+    [
+        {"asset": "XRP"},
+        {"asset": "BTC", "analysis_date": "2024-02-30"},
+        {"asset": "BTC", "analysis_date": "2024-01-01T12:00:00Z"},
+        {"asset": "BTC", "timeout_seconds": 0},
+    ],
+)
+def test_spot_request_rejects_invalid_inputs(raw):
+    with pytest.raises(ValidationError):
+        SpotPriceRequest.model_validate(raw)
+
+
+@pytest.mark.parametrize(
+    "fields",
+    [
+        {"semantics": "historical_finalized"},
+        {"analysis_date": "2024-01-01"},
+        {
+            "semantics": "historical_finalized",
+            "analysis_date": "2024-01-01",
+            "intraday_failure": {"kind": "http", "detail": "HTTP 429"},
+        },
+    ],
+)
+def test_spot_context_rejects_inconsistent_historical_scope(fields):
+    with pytest.raises(ValidationError):
+        SpotPriceContext(asset="BTC", **fields)

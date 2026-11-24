@@ -94,6 +94,105 @@ class CryptoContext(FrozenModel):
 
         return json.dumps(self.model_dump(mode="json"), sort_keys=True, indent=2)
 
+    def summary(self) -> "CryptoContextSummary":
+        """Project source evidence without instrument-sized options arrays."""
+        return CryptoContextSummary(
+            asset=self.asset,
+            semantics=self.semantics,
+            sources=tuple(SourceSummary.from_snapshot(row) for row in self.snapshots),
+            unknowns=self.unknowns,
+        )
+
+
+class OptionFamilySummary(FrozenModel):
+    name: str
+    unit: str
+    resolution: str
+    count: int
+    available_count: int
+    missing_count: int
+    minimum: Decimal | None
+    maximum: Decimal | None
+    total: Decimal | None
+    observed_start: AwareDatetime | None
+    observed_end: AwareDatetime | None
+
+
+class SourceSummary(FrozenModel):
+    source: Source
+    venue: Venue
+    endpoint: str
+    fetched_at: AwareDatetime
+    observed_at: AwareDatetime | None
+    resolution: str
+    coverage: str
+    metrics: tuple[Metric, ...]
+    option_instrument_count: int
+    option_families: tuple[OptionFamilySummary, ...]
+    freshness_counts: dict[str, int]
+    unknowns: tuple[str, ...]
+    failure: SourceFailure | None
+
+    @classmethod
+    def from_snapshot(cls, row: SourceSnapshot) -> "SourceSummary":
+        """Keep provenance; aggregate option families and collector freshness flags."""
+        options = tuple(m for m in row.metrics if m.name.startswith("option_"))
+        families = []
+        for name, unit, resolution in sorted({(m.name, m.unit, m.resolution) for m in options}):
+            members = tuple(
+                m for m in options if (m.name, m.unit, m.resolution) == (name, unit, resolution)
+            )
+            values = sorted(m.value for m in members if m.value is not None)
+            observed = sorted(m.observed_at for m in members if m.observed_at is not None)
+            families.append(
+                OptionFamilySummary(
+                    name=name,
+                    unit=unit,
+                    resolution=resolution,
+                    count=len(members),
+                    available_count=len(values),
+                    missing_count=len(members) - len(values),
+                    minimum=min(values) if values else None,
+                    maximum=max(values) if values else None,
+                    total=sum(values, Decimal(0))
+                    if values and name in {"option_open_interest", "option_volume_24h"}
+                    else None,
+                    observed_start=min(observed) if observed else None,
+                    observed_end=max(observed) if observed else None,
+                )
+            )
+        flags = {f"{m.name} [{m.coverage}]": m for m in options}
+        freshness_counts: dict[str, int] = {}
+        unknowns = []
+        for note in row.unknowns:
+            prefix, _, status = note.rpartition(": ")
+            if prefix in flags and status in {"unknown", "future", "stale", "fresh"}:
+                freshness_counts[status] = freshness_counts.get(status, 0) + 1
+            else:
+                unknowns.append(note)
+        return cls(
+            source=row.source,
+            venue=row.venue,
+            endpoint=row.endpoint,
+            fetched_at=row.fetched_at,
+            observed_at=row.observed_at,
+            resolution=row.resolution,
+            coverage=row.coverage,
+            metrics=tuple(m for m in row.metrics if not m.name.startswith("option_")),
+            option_instrument_count=len({m.coverage for m in options}),
+            option_families=tuple(families),
+            freshness_counts=freshness_counts,
+            unknowns=tuple(unknowns),
+            failure=row.failure,
+        )
+
+
+class CryptoContextSummary(FrozenModel):
+    asset: Asset
+    semantics: Literal["current_snapshot"]
+    sources: tuple[SourceSummary, ...]
+    unknowns: tuple[str, ...]
+
 
 class SnapshotRequest(FrozenModel):
     """No date/as-of input: this collector cannot satisfy historical requests."""
