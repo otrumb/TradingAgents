@@ -1,8 +1,12 @@
+from datetime import UTC, date, datetime
+
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 
 from tradingagents.agents.analysts.turn import take_turn
 from tradingagents.agents.context import get_instrument_context_from_state, get_language_instruction
 from tradingagents.agents.tools import get_indicators, get_stock_data, get_verified_market_snapshot
+from tradingagents.dataflows.crypto_models import SnapshotRequest
+from tradingagents.dataflows.symbols import crypto_base
 
 # The tools this analyst is offered; its tool node is built from the same tuple.
 TOOLS = (
@@ -17,6 +21,19 @@ def create_market_analyst(llm):
     def market_analyst_node(state):
         current_date = state["trade_date"]
         instrument_context = get_instrument_context_from_state(state)
+        crypto_market_data = state.get("crypto_market_data", "")
+        if (
+            state.get("asset_type", "stock") == "crypto"
+            and not crypto_market_data
+            and date.fromisoformat(current_date) == datetime.now(UTC).date()
+        ):
+            asset = crypto_base(state["company_of_interest"])
+            if asset in {"BTC", "ETH", "SOL"}:
+                from tradingagents.dataflows.crypto_spot import collect_spot_prices
+
+                crypto_market_data = collect_spot_prices(
+                    SnapshotRequest(asset=asset)
+                ).model_dump_json()
 
         system_message = (
             """You are a trading assistant tasked with analyzing financial markets. Your role is to select the **most relevant indicators** for a given market condition or trading strategy from the following list. The goal is to choose up to **8 indicators** that provide complementary insights without redundancy. Categories and each category's indicators are:
@@ -79,6 +96,7 @@ Write a very detailed and nuanced report of the trends you observe. Provide spec
         return {
             "messages": [result],
             "market_report": report,
+            "crypto_market_data": crypto_market_data,
         }
 
     return market_analyst_node
