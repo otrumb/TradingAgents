@@ -38,8 +38,9 @@ class AgentState(MessagesState):
     news_report: Annotated[str, "Report from the News Analyst on company and world news"]
     fundamentals_report: Annotated[str, "Report from the Fundamentals Analyst"]
     crypto_report: Annotated[str, "Read-only public crypto context report"]
+    crypto_context_data: Annotated[str, "Canonical raw public crypto context for evidence sidecars"]
     crypto_market_data: Annotated[
-        str, "Finalized Binance Spot daily candles shared by crypto market tools"
+        str, "Full serialized analyzed SpotPriceContext collected once before analyst fan-out"
     ]
 
     # researcher team discussion step

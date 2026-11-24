@@ -14,9 +14,10 @@ from tradingagents.dataflows import crypto_context, crypto_spot
 from tradingagents.dataflows.crypto_models import CryptoContext
 from tradingagents.dataflows.crypto_spot_models import CryptoAnalystContext, SpotPriceContext
 from tradingagents.dataflows.symbols import normalize_symbol
+from tradingagents.graph.analyst_execution import ANALYST_NODE_SPECS
 from tradingagents.graph.conditional_logic import ConditionalLogic
 from tradingagents.graph.propagation import Propagator
-from tradingagents.graph.setup import GraphSetup
+from tradingagents.graph.setup import GraphSetup, _analyst_graph
 from tradingagents.reporting import write_report_tree
 
 
@@ -79,7 +80,11 @@ def test_current_adapter_uses_typed_collector_request(monkeypatch, ticker, asset
         crypto_spot, "collect_spot_prices", lambda request: SpotPriceContext(asset=request.asset)
     )
 
-    report = crypto_analyst.collect_crypto_report(ticker, datetime.now(UTC).date().isoformat())
+    report = crypto_analyst.collect_crypto_report(
+        ticker,
+        datetime.now(UTC).date().isoformat(),
+        SpotPriceContext(asset=asset).model_dump_json(),
+    )
 
     assert requests[0].asset == asset
     assert CryptoAnalystContext.model_validate_json(report).spot_prices.asset == asset
@@ -136,20 +141,50 @@ def test_saved_crypto_section_is_written_and_removed_when_absent(tmp_path):
 
 def test_current_node_preserves_evidence_in_saved_reports_and_state_log(monkeypatch, tmp_path):
     from tests.test_cli_display import _bare_graph, _state
+    from tests.test_crypto_market_tools import _spot_context
+    from tradingagents.dataflows.crypto_models import Metric, SourceSnapshot
     from tradingagents.dataflows.crypto_spot_models import IntradayPrice
 
     now = datetime.now(UTC)
-    evidence = SpotPriceContext(
+    evidence = _spot_context().model_copy(
+        update={
+            "intraday": IntradayPrice(
+                asset="BTC", symbol="BTCUSDT", retrieved_at=now, server_time=now, price="123.45"
+            ),
+        }
+    )
+    full_context = CryptoContext(
         asset="BTC",
-        intraday=IntradayPrice(
-            asset="BTC", symbol="BTCUSDT", retrieved_at=now, server_time=now, price="123.45"
+        snapshots=(
+            SourceSnapshot(
+                source="deribit",
+                venue="Deribit",
+                endpoint="https://example.com/options",
+                fetched_at=now,
+                observed_at=now,
+                resolution="instant",
+                coverage="BTC options",
+                metrics=tuple(
+                    Metric(
+                        name="option_open_interest",
+                        value=index,
+                        unit="contracts",
+                        observed_at=now,
+                        resolution="instant",
+                        coverage=f"BTC-OPTIONS-{index}",
+                    )
+                    for index in range(2000)
+                ),
+            ),
         ),
     )
-    monkeypatch.setattr(
-        crypto_context,
-        "collect_crypto_context",
-        lambda request: CryptoContext(asset=request.asset, snapshots=()),
-    )
+    collected = []
+
+    def collect(request):
+        collected.append(request.asset)
+        return full_context
+
+    monkeypatch.setattr(crypto_context, "collect_crypto_context", collect)
     monkeypatch.setattr(crypto_spot, "collect_spot_prices", lambda request: evidence)
     llm = FakeListChatModel(responses=["Spot assessment"])
     received = []
@@ -159,17 +194,120 @@ def test_current_node_preserves_evidence_in_saved_reports_and_state_log(monkeypa
         return AIMessage(content="Spot assessment")
 
     monkeypatch.setattr(FakeListChatModel, "invoke", invoke)
-    state = Propagator().create_initial_state("BTC-USD", now.date().isoformat(), "crypto")
+    state = Propagator().create_initial_state(
+        "BTC-USD", now.date().isoformat(), "crypto", crypto_market_data=evidence.model_dump_json()
+    )
 
-    result = crypto_analyst.create_crypto_analyst(llm)(state)
+    graph = _analyst_graph(
+        ANALYST_NODE_SPECS["crypto"], crypto_analyst.create_crypto_analyst(llm), 2
+    )
+    result = graph.invoke(state)
 
     report = result["crypto_report"]
-    assert received[0]["spot_prices"] == evidence.model_dump(mode="json")
-    serialized = json.loads(report.split("\n", 3)[-1])
-    assert serialized["spot_prices"] == evidence.model_dump(mode="json")
-    write_report_tree(result, "BTC-USD", tmp_path / "reports")
+    assert received[0]["spot_prices"]["daily_row_count"] == 60
+    assert "daily_candles" not in received[0]["spot_prices"]
+    assert "snapshots" not in received[0]
+    assert collected == ["BTC"]
+    assert received[0]["sources"][0]["option_instrument_count"] == 2000
+    assert len(received[0]["sources"][0]["option_families"]) == 1
+    assert received[0]["sources"][0]["metrics"] == []
+    serialized = json.loads(report.split("```json\n")[1].split("\n```")[0])
+    assert serialized == received[0]
+    assert serialized["spot_prices"]["latest_finalized"] == evidence.daily_candles[-1].model_dump(
+        mode="json"
+    )
+    write_report_tree(state | result, "BTC-USD", tmp_path / "reports")
+    sidecars = tmp_path / "reports" / "evidence"
+    assert (
+        SpotPriceContext.model_validate_json((sidecars / "crypto_spot.json").read_text())
+        == evidence
+    )
+    assert (
+        CryptoContext.model_validate_json((sidecars / "crypto_context.json").read_text())
+        == full_context
+    )
     assert (tmp_path / "reports" / "1_analysts" / "crypto.md").read_text() == report
+    parser = ReportHTML()
+    parser.feed((tmp_path / "reports" / "complete_report.html").read_text())
+    for text in (
+        report,
+        (tmp_path / "reports" / "complete_report.md").read_text(),
+        get_instrument_context_from_state(state | result),
+        "".join(parser.text),
+    ):
+        start = text.index('{\n  "asset"')
+        rendered, _ = json.JSONDecoder().raw_decode(text[start:])
+        assert "snapshots" not in rendered
+        assert "daily_candles" not in rendered["spot_prices"]
+        assert rendered["spot_prices"]["daily_row_count"] == 60
     log_state = _state("BTC-USD") | result
     _bare_graph(tmp_path)._log_state(now.date().isoformat(), log_state)
     log = next(tmp_path.rglob("full_states_log*.json"))
     assert json.loads(log.read_text(encoding="utf-8"))["crypto_report"] == report
+
+
+def test_report_reuse_removes_only_owned_crypto_sidecars(tmp_path):
+    evidence = SpotPriceContext(asset="BTC")
+    context = CryptoContext(asset="BTC", snapshots=())
+    write_report_tree(
+        {"crypto_market_data": evidence.model_dump_json(), "crypto_context_data": context.render()},
+        "BTC-USD",
+        tmp_path,
+    )
+    (tmp_path / "evidence" / "notes.txt").write_text("keep")
+
+    write_report_tree({}, "AAPL", tmp_path)
+
+    assert {p.name for p in (tmp_path / "evidence").iterdir()} == {"notes.txt"}
+
+
+def test_historical_graph_retains_compact_spot_without_current_context(monkeypatch, tmp_path):
+    from datetime import date
+
+    from tests.test_crypto_market_tools import _spot_context
+
+    candles = tuple(
+        candle.model_copy(
+            update={
+                "analysis_date": date(2026, 6, 1),
+                "cutoff": datetime(2026, 6, 2, tzinfo=UTC),
+                "server_time": None,
+                "finality_lag_ms": 0,
+            }
+        )
+        for candle in _spot_context().daily_candles
+    )
+    spot = SpotPriceContext(
+        asset="BTC",
+        semantics="historical_finalized",
+        analysis_date=date(2026, 6, 1),
+        daily_candles=candles,
+    )
+
+    def forbidden(request):
+        pytest.fail("historical analyst fetched live evidence")
+
+    monkeypatch.setattr(crypto_context, "collect_crypto_context", forbidden)
+    monkeypatch.setattr(crypto_spot, "collect_spot_prices", forbidden)
+    llm = FakeListChatModel(responses=["**Rating**: Hold"])
+    graph = GraphSetup(llm, llm, ConditionalLogic(1, 1), 2).setup_graph(["crypto"]).compile()
+    state = Propagator().create_initial_state(
+        "BTC-USD", "2026-06-01", "crypto", crypto_market_data=spot.model_dump_json()
+    )
+
+    result = graph.invoke(state)
+    write_report_tree(result, "BTC-USD", tmp_path)
+
+    summary = json.loads(result["crypto_report"].split("```json\n")[1].split("\n```")[0])
+    assert summary == spot.summary().model_dump(mode="json")
+    assert summary["daily_row_count"] == 60
+    assert summary["intraday"] is None
+    assert result["crypto_context_data"] == ""
+    assert result["crypto_market_data"] == spot.model_dump_json()
+    assert (
+        SpotPriceContext.model_validate_json(
+            (tmp_path / "evidence" / "crypto_spot.json").read_text()
+        )
+        == spot
+    )
+    assert not (tmp_path / "evidence" / "crypto_context.json").exists()
