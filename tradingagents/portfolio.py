@@ -86,8 +86,12 @@ class PortfolioContext(BaseModel):
         held = self.positions_in(ticker)
         return held[0] if held else None
 
-    def render(self, ticker: str) -> str:
+    def render(self, ticker: str, *, trade_date: str | None = None) -> str:
         """The portfolio block for the decision agents, led by the analyzed instrument."""
+        if trade_date is not None:
+            from tradingagents.portfolio_runtime import render_runtime_portfolio
+
+            return render_runtime_portfolio(self, ticker, trade_date)
         symbol = normalize_symbol(ticker)
         held = self.positions_in(symbol)
         lines = []
