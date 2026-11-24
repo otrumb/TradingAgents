@@ -16,11 +16,14 @@ from __future__ import annotations
 import hashlib
 import json
 from pathlib import Path
-from typing import Literal
+from typing import TYPE_CHECKING, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
 from tradingagents.dataflows.symbols import normalize_symbol
+
+if TYPE_CHECKING:
+    from tradingagents.dataflows.crypto_spot_models import SpotPriceContext
 
 
 class Position(BaseModel):
@@ -86,12 +89,18 @@ class PortfolioContext(BaseModel):
         held = self.positions_in(ticker)
         return held[0] if held else None
 
-    def render(self, ticker: str, *, trade_date: str | None = None) -> str:
+    def render(
+        self,
+        ticker: str,
+        *,
+        trade_date: str | None = None,
+        spot_contexts: tuple[SpotPriceContext, ...] = (),
+    ) -> str:
         """The portfolio block for the decision agents, led by the analyzed instrument."""
         if trade_date is not None:
             from tradingagents.portfolio_runtime import render_runtime_portfolio
 
-            return render_runtime_portfolio(self, ticker, trade_date)
+            return render_runtime_portfolio(self, ticker, trade_date, evidence=spot_contexts)
         symbol = normalize_symbol(ticker)
         held = self.positions_in(symbol)
         lines = []

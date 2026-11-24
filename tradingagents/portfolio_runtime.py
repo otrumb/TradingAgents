@@ -4,8 +4,7 @@ from datetime import UTC, date, datetime
 from decimal import Decimal
 from typing import Final
 
-from tradingagents.dataflows.crypto_models import Asset, FrozenModel, SnapshotRequest, SourceFailure
-from tradingagents.dataflows.crypto_spot import collect_spot_prices
+from tradingagents.dataflows.crypto_models import Asset, FrozenModel, SourceFailure
 from tradingagents.dataflows.crypto_spot_models import IntradayPrice, SpotPriceContext
 from tradingagents.dataflows.symbols import crypto_base
 from tradingagents.portfolio import PortfolioContext
@@ -79,18 +78,16 @@ def enrich_portfolio(
     )
 
 
-def render_runtime_portfolio(book: PortfolioContext, ticker: str, trade_date: str) -> str:
-    """Collect each needed supported asset once, before rendering and sizing."""
+def render_runtime_portfolio(
+    book: PortfolioContext,
+    ticker: str,
+    trade_date: str,
+    *,
+    evidence: tuple[SpotPriceContext, ...] = (),
+) -> str:
+    """Render and size from supplied current-run evidence without collecting."""
     current = date.fromisoformat(trade_date) == datetime.now(UTC).date()
-    needed = {
-        crypto_base(p.ticker) for p in book.positions if p.quantity != 0 and p.mark_price is None
-    }
-    evidence = tuple(
-        collect_spot_prices(SnapshotRequest(asset=asset))
-        for asset in SUPPORTED
-        if current and book.currency in ("USD", "USDT") and asset in needed
-    )
-    result = enrich_portfolio(book, evidence)
+    result = enrich_portfolio(book, evidence if current else ())
     note = result.model_dump_json(exclude={"portfolio"})
     gating = "current UTC date" if current else "current Spot fetch disabled for non-current date"
     quote = "USDT Spot quote; USD uses 1:1 USDT/USD assumption; no FX conversion"
