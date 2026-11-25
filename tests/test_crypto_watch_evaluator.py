@@ -84,7 +84,9 @@ def test_freshness_exact_threshold(watch_wire, interval, hours, excess, reason):
     snapshot = collect_watch(WatchRequest(asset="BTC", as_of=CUTOFF, timeout_seconds=7))
     data = snapshot.model_dump()
     latest = next(s for s in snapshot.series if s.interval == interval).candles[-1].close_time
-    data["cutoff"] = data["as_of"] = latest + timedelta(hours=hours, microseconds=excess)
+    data["observable_at"] = data["cutoff"] = data["as_of"] = latest + timedelta(
+        hours=hours, microseconds=excess
+    )
     for other in data["series"]:
         shift = timedelta(hours=hours) - DURATIONS[other["interval"]]
         if other["interval"] != interval and shift > timedelta(0):

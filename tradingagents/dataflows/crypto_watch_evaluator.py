@@ -26,6 +26,7 @@ class _Evidence(TypedDict):
     source: Literal["https://fapi.binance.com"]
     as_of: datetime | None
     cutoff: datetime | None
+    observable_at: datetime | None
     latest_close_times: tuple[datetime | None, ...]
     statuses: tuple[Literal["ok", "unavailable", "insufficient_history", "stale"], ...]
     latest_closes: tuple[Decimal | None, ...]
@@ -61,6 +62,7 @@ def evaluate_watch(snapshot: WatchSnapshot) -> WatchDecision:
         "source": snapshot.source,
         "as_of": cutoff,
         "cutoff": cutoff,
+        "observable_at": snapshot.observable_at,
         "latest_close_times": tuple(
             s.candles[-1].close_time if s.candles else None for s in snapshot.series
         ),
@@ -103,11 +105,12 @@ def evaluate_watch(snapshot: WatchSnapshot) -> WatchDecision:
         case unreachable:
             assert_never(unreachable)
     four = snapshot.series[1].candles
-    if cutoff is None:
+    if cutoff is None or snapshot.observable_at is None:
         raise ContextContractError(field="watch aligned cutoff")
     plan = HypotheticalPlan(
         direction=bias,
         decision_as_of=cutoff,
+        observable_at=snapshot.observable_at,
         invalidation=min(c.low for c in four[-4:-1])
         if bias == "long"
         else max(c.high for c in four[-4:-1]),

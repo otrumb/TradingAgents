@@ -23,10 +23,15 @@ def evaluate_hypothetical(
     as_of: datetime,
 ) -> HypotheticalOutcome:
     """Use finalized consecutive hourly bars; touch beats expiry, gaps price adversely."""
-    if future.interval != "1h" or as_of < plan.decision_as_of:
+    if (
+        as_of.tzinfo is None
+        or as_of.utcoffset() is None
+        or future.interval != "1h"
+        or as_of < plan.observable_at
+    ):
         raise ContextContractError(field="hypothetical future scope")
     duration = DURATIONS["1h"]
-    offset = plan.decision_as_of - EPOCH
+    offset = plan.observable_at - EPOCH
     first_open = EPOCH + ((offset + duration - timedelta(microseconds=1)) // duration) * duration
     bars = tuple(c for c in future.candles if c.open_time >= first_open and c.close_time < as_of)
     if not bars or bars[0].open_time != first_open:
@@ -62,11 +67,9 @@ def evaluate_hypothetical(
                 exit_price = candle.close
             with localcontext(Context(prec=28)):
                 gross = sign * (exit_price - entry.open) / entry.open
-                cost = (
-                    plan.costs.round_trip_fee
-                    + 2 * plan.costs.slippage_per_side
-                    + plan.costs.funding_debit_per_8h * Decimal(index + 1) / 8
-                )
+                fee_slippage = plan.costs.round_trip_fee + 2 * plan.costs.slippage_per_side
+                funding = plan.costs.funding_debit_per_8h * Decimal(index + 1) / 8
+                cost = fee_slippage + funding
                 net = gross - cost
             return HypotheticalOutcome(
                 status="stopped" if touched else "expired",
@@ -80,6 +83,8 @@ def evaluate_hypothetical(
                 exit_price=exit_price,
                 closed_holding_bars=index + 1,
                 gross_return=gross,
+                fee_slippage_return=fee_slippage,
+                funding_return=funding,
                 cost_return=cost,
                 net_return=net,
             )
@@ -101,15 +106,22 @@ def evaluate_watch_history(
     """Rebuild collector-sized prefixes at each cutoff; future bars only price outcomes."""
     if archive.as_of is None or archive.cutoff is None:
         raise ContextContractError(field="historical watch archive required")
+    if any(stamp.tzinfo is None or stamp.utcoffset() is None for stamp in decision_times):
+        raise ContextContractError(field="historical decision timestamp")
+    if any(left >= right for left, right in zip(decision_times, decision_times[1:], strict=False)):
+        raise ContextContractError(
+            field="historical decision timestamps must be strictly increasing"
+        )
     results = []
     for stamp in decision_times:
-        if stamp.tzinfo is None or stamp > archive.cutoff:
+        if stamp.tzinfo is None or stamp.utcoffset() is None or stamp > archive.cutoff:
             raise ContextContractError(field="historical decision timestamp")
         prefix = WatchSnapshot(
             asset=archive.asset,
             symbol=archive.symbol,
             as_of=stamp,
             cutoff=stamp,
+            observable_at=stamp,
             server_time=None,
             series=tuple(
                 WatchSeries(
