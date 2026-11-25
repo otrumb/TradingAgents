@@ -32,6 +32,7 @@ def test_run_collects_public_spot_once_per_asset_before_render(monkeypatch, hist
             asset=request.asset,
             symbol=f"{request.asset}USDT",
             cutoff=cutoff,
+            observable_at=cutoff,
             as_of=cutoff,
             server_time=None,
             series=tuple(WatchSeries(interval=i) for i in ("1d", "4h", "1h")),
