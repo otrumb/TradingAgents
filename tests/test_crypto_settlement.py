@@ -5,7 +5,11 @@ import pandas as pd
 import pytest
 import requests
 
-from tradingagents.dataflows.crypto_settlement import SettlementPriceError, fetch_crypto_returns
+from tradingagents.dataflows.crypto_settlement import (
+    SettlementPriceError,
+    fetch_crypto_outcome,
+    fetch_crypto_returns,
+)
 from tradingagents.memory import TradingMemoryLog, settlement
 
 DAY = 86400000
@@ -182,6 +186,31 @@ def test_pending_routing_records_exit_date_and_point_in_time_context(
     assert log.load_entries()[0]["resolved"] == "2026-01-05"
     assert log.get_past_context(ticker, as_of="2026-01-04") == ""
     assert "weekend lesson" in log.get_past_context(ticker, as_of="2026-01-05")
+    facts = log.load_entries()[0]["outcome"]
+    base = "BTC" if ticker.startswith("BTC") else "ETH" if ticker.startswith("ETH") else "SOL"
+    assert facts["asset"] == {
+        "provider": "binance_spot",
+        "symbol": f"{base}USDT",
+        "entry_date": "2026-01-03",
+        "exit_date": "2026-01-05",
+        "entry_price": {"BTC": 100.0, "ETH": 200.0, "SOL": 50.0}[base],
+        "exit_price": {"BTC": 120.0, "ETH": 260.0, "SOL": 70.0}[base],
+    }
+    assert facts["benchmark"] == {
+        "provider": "cash" if base == "BTC" else "binance_spot",
+        "symbol": "USDT" if base == "BTC" else "BTCUSDT",
+        "entry_date": "2026-01-03",
+        "exit_date": "2026-01-05",
+        "entry_price": 1.0 if base == "BTC" else 100.0,
+        "exit_price": 1.0 if base == "BTC" else 120.0,
+    }
+    assert facts["window"] == {"kind": "utc_days", "count": 2}
+    assert facts["benchmark_label"] == label
+    assert facts["raw_return"] == pytest.approx(raw)
+    assert facts["benchmark_return"] == (0.0 if base == "BTC" else 0.2)
+    assert fetch_crypto_outcome(ticker, "2026-01-02", 2).legacy_tuple() == fetch_crypto_returns(
+        ticker, "2026-01-02", 2
+    )
 
 
 @pytest.mark.parametrize("payload,failed", [([], False), ("429", True)])

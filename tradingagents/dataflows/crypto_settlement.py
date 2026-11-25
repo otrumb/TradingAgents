@@ -15,6 +15,7 @@ from .crypto_spot_models import (
     SpotSymbol,
     utc_milliseconds,
 )
+from .settlement_models import SettlementLeg, SettlementOutcome
 from .symbols import crypto_base
 
 ROWS: Final = TypeAdapter(tuple[KlineRow, ...])
@@ -90,11 +91,11 @@ def _candles(
     return tuple(candles)
 
 
-def fetch_crypto_returns(
+def fetch_crypto_outcome(
     ticker: str,
     trade_date: str,
     holding_days: int = 5,
-) -> tuple[float | None, float | None, int | None, str | None]:
+) -> SettlementOutcome | None:
     """Return legacy outcome tuple; incomplete exact UTC windows stay pending.
 
     BTC uses USDT cash (zero return); ETH/SOL use BTCUSDT on identical days.
@@ -112,24 +113,68 @@ def fetch_crypto_returns(
             server_time = utc_milliseconds(clock.serverTime)
             exit_time = request.entry + (holding_days + 1) * DAY - timedelta(milliseconds=1)
             if exit_time >= server_time - timedelta(seconds=5):
-                return PENDING
+                return None
             asset = _candles(session, request, server_time)
             expected = tuple(request.entry + i * DAY for i in range(holding_days + 1))
             if tuple(c.open_time for c in asset) != expected:
-                return PENDING
+                return None
             benchmark_return = 0.0
+            entry_date = asset[0].open_time.date().isoformat()
+            exit_date = asset[-1].open_time.date().isoformat()
+            benchmark_leg = SettlementLeg(
+                provider="cash",
+                symbol="USDT",
+                entry_date=entry_date,
+                exit_date=exit_date,
+                entry_price=1.0,
+                exit_price=1.0,
+            )
             if request.asset != "BTC":
                 benchmark = _candles(
                     session, request.model_copy(update={"asset": "BTC"}), server_time
                 )
                 if tuple(c.open_time for c in benchmark) != expected:
-                    return PENDING
+                    return None
                 benchmark_return = float(benchmark[-1].close / benchmark[0].close - 1)
+                benchmark_leg = SettlementLeg(
+                    provider="binance_spot",
+                    symbol="BTCUSDT",
+                    entry_date=entry_date,
+                    exit_date=exit_date,
+                    entry_price=float(benchmark[0].close),
+                    exit_price=float(benchmark[-1].close),
+                )
         raw = float(asset[-1].close / asset[0].close - 1)
-        return raw, raw - benchmark_return, holding_days, asset[-1].open_time.date().isoformat()
+        return SettlementOutcome(
+            asset=SettlementLeg(
+                provider="binance_spot",
+                symbol=asset[0].symbol,
+                entry_date=entry_date,
+                exit_date=exit_date,
+                entry_price=float(asset[0].close),
+                exit_price=float(asset[-1].close),
+            ),
+            benchmark=benchmark_leg,
+            benchmark_label="USDT cash" if request.asset == "BTC" else "BTCUSDT",
+            window_kind="utc_days",
+            window_count=holding_days,
+            raw_return=raw,
+            benchmark_return=benchmark_return,
+            alpha_return=raw - benchmark_return,
+        )
     except requests.HTTPError as exc:
         raise SettlementPriceError(f"HTTP {exc.response.status_code}") from None
     except requests.RequestException as exc:
         raise SettlementPriceError(type(exc).__name__) from None
     except (ValidationError, ContextContractError, OverflowError):
         raise SettlementPriceError("invalid response or request") from None
+
+
+def fetch_crypto_returns(
+    ticker: str,
+    trade_date: str,
+    holding_days: int = 5,
+) -> tuple[float | None, float | None, int | None, str | None]:
+    """Compatible tuple view of the detailed Binance outcome."""
+    outcome = fetch_crypto_outcome(ticker, trade_date, holding_days)
+    return PENDING if outcome is None else outcome.legacy_tuple()
