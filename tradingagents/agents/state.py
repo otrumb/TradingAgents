@@ -43,6 +43,10 @@ class AgentState(MessagesState):
     crypto_market_data: Annotated[
         str, "Full serialized analyzed SpotPriceContext collected once before analyst fan-out"
     ]
+    spot_allocation_data: Annotated[str, "Serialized deterministic run-start Spot allocation"]
+    spot_action_data: Annotated[str, "Serialized deterministic action from final market rating"]
+    crypto_futures_watch_evidence: Annotated[str, "Canonical read-only futures watch snapshot"]
+    crypto_futures_watch_data: Annotated[str, "Deterministic 1d/4h/1h futures watch decision"]
 
     # researcher team discussion step
     investment_debate_state: Annotated[
