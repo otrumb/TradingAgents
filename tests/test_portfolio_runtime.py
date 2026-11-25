@@ -42,6 +42,20 @@ def runtime(monkeypatch, tmp_path):
     monkeypatch.setattr(module, "datetime", Clock)
     monkeypatch.setattr(graph_module, "datetime", Clock)
     monkeypatch.setattr(graph_module, "collect_spot_prices", collect)
+    from tradingagents.dataflows.crypto_watch_models import WatchSeries, WatchSnapshot
+
+    def watch(request):
+        cutoff = request.as_of or NOW
+        return WatchSnapshot(
+            asset=request.asset,
+            symbol=f"{request.asset}USDT",
+            cutoff=cutoff,
+            as_of=cutoff,
+            server_time=None,
+            series=tuple(WatchSeries(interval=i) for i in ("1d", "4h", "1h")),
+        )
+
+    monkeypatch.setattr("tradingagents.graph.run_decisions.collect_watch", watch)
     graph = object.__new__(TradingAgentsGraph)
     graph.propagator = Propagator()
     graph.resolve_instrument_context = lambda *args: ""

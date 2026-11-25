@@ -24,6 +24,20 @@ def test_run_collects_public_spot_once_per_asset_before_render(monkeypatch, hist
 
     monkeypatch.setattr(module, "datetime", Clock)
     monkeypatch.setattr(runtime, "datetime", Clock)
+    from tradingagents.dataflows.crypto_watch_models import WatchSeries, WatchSnapshot
+
+    def watch(request):
+        cutoff = request.as_of or now
+        return WatchSnapshot(
+            asset=request.asset,
+            symbol=f"{request.asset}USDT",
+            cutoff=cutoff,
+            as_of=cutoff,
+            server_time=None,
+            series=tuple(WatchSeries(interval=i) for i in ("1d", "4h", "1h")),
+        )
+
+    monkeypatch.setattr("tradingagents.graph.run_decisions.collect_watch", watch)
     calls = []
     opened = int(datetime(2026, 8, 12, tzinfo=UTC).timestamp()) * 1000
 

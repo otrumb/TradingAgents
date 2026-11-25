@@ -88,6 +88,10 @@ def render_runtime_portfolio(
     """Render and size from supplied current-run evidence without collecting."""
     current = date.fromisoformat(trade_date) == datetime.now(UTC).date()
     result = enrich_portfolio(book, evidence if current else ())
+    return render_runtime_valuation(result, ticker, current)
+
+
+def render_runtime_valuation(result: RuntimeValuation, ticker: str, current: bool) -> str:
     note = result.model_dump_json(exclude={"portfolio"})
     gating = "current UTC date" if current else "current Spot fetch disabled for non-current date"
     quote = "USDT Spot quote; USD uses 1:1 USDT/USD assumption; no FX conversion"

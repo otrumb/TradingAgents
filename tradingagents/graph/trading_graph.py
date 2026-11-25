@@ -24,6 +24,7 @@ from tradingagents.reporting import write_report_tree
 from .checkpointer import checkpoint_step, clear_checkpoint, get_checkpointer, thread_id
 from .conditional_logic import ConditionalLogic
 from .propagation import Propagator
+from .run_decisions import initialize_decisions
 from .setup import GraphSetup
 
 logger = logging.getLogger(__name__)
@@ -331,20 +332,14 @@ class TradingAgentsGraph:
             (context.model_dump_json() for context in spot_contexts if context.asset == analyzed),
             "",
         )
-        return self.propagator.create_initial_state(
+        state = self.propagator.create_initial_state(
             company_name,
             trade_date,
             asset_type=asset_type,
             instrument_context=self.resolve_instrument_context(company_name, asset_type, trade_date),
-            portfolio_context=portfolio.render(
-                company_name,
-                trade_date=trade_date,
-                spot_contexts=spot_contexts,
-            )
-            if portfolio is not None
-            else "",
             crypto_market_data=crypto_market_data,
         )
+        return initialize_decisions(state, portfolio, spot_contexts, current=current)
 
     def _memory_step(self, state):
         """The graph's Memory Log step, alongside the analysts (#1428): settle every
