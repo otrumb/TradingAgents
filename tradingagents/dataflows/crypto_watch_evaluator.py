@@ -1,19 +1,23 @@
 """Decimal EMA watch rules with deterministic quality-first wait precedence."""
 
 from datetime import datetime
-from decimal import Context, Decimal, localcontext
+from decimal import Decimal
 from typing import Literal, TypedDict, assert_never
 
-from .crypto_models import Asset
+from .crypto_models import Asset, ContextContractError
 from .crypto_spot_models import SpotSymbol
+from .crypto_watch_diagnostics import diagnose_watch
 from .crypto_watch_models import (
     DURATIONS,
     FRESHNESS,
     REQUIRED,
     Direction,
+    WatchCondition,
     WatchDecision,
     WatchSnapshot,
 )
+from .crypto_watch_report import render_watch_details
+from .crypto_watch_scenario_models import HypotheticalPlan
 
 
 class _Evidence(TypedDict):
@@ -24,22 +28,14 @@ class _Evidence(TypedDict):
     cutoff: datetime | None
     latest_close_times: tuple[datetime | None, ...]
     statuses: tuple[Literal["ok", "unavailable", "insufficient_history", "stale"], ...]
+    latest_closes: tuple[Decimal | None, ...]
+    conditions: tuple[WatchCondition, ...]
 
 
 class _Signals(TypedDict):
     bias: Direction
     setup: Direction
     trigger: Direction
-
-
-def _ema(closes: tuple[Decimal, ...], period: int) -> tuple[Decimal, ...]:
-    """Seed EMA with first close; recurse with alpha=2/(period+1), precision 28."""
-    with localcontext(Context(prec=28)):
-        alpha = Decimal(2) / Decimal(period + 1)
-        values = [closes[0]]
-        for close in closes[1:]:
-            values.append(values[-1] + alpha * (close - values[-1]))
-        return tuple(values)
 
 
 def evaluate_watch(snapshot: WatchSnapshot) -> WatchDecision:
@@ -69,45 +65,27 @@ def evaluate_watch(snapshot: WatchSnapshot) -> WatchDecision:
             s.candles[-1].close_time if s.candles else None for s in snapshot.series
         ),
         "statuses": tuple(statuses),
+        "latest_closes": tuple(s.candles[-1].close if s.candles else None for s in snapshot.series),
+        "conditions": (),
     }
     for reason in ("unavailable", "insufficient_history", "stale"):
         if reason in statuses:
             return WatchDecision(**evidence, reasons=(reason,))
-    daily, four_hour, hourly = (series.candles for series in snapshot.series)
-    daily_closes = tuple(c.close for c in daily)
-    ema20 = _ema(daily_closes, 20)[-1]
-    ema50 = _ema(daily_closes, 50)[-1]
-    bias: Direction = (
-        "long"
-        if daily[-1].close > ema20 > ema50
-        else "short"
-        if daily[-1].close < ema20 < ema50
-        else "neutral"
-    )
-    averages = _ema(tuple(c.close for c in four_hour), 20)
-    latest, previous = four_hour[-1], four_hour[-2]
-    setup: Direction = "neutral"
-    # Each pullback candle compares against its own EMA, excluding latest candle.
-    prior = tuple(zip(four_hour[-4:-1], averages[-4:-1], strict=True))
-    if (
-        latest.close > averages[-1]
-        and latest.close > previous.high
-        and any(min(c.low, c.close) <= average for c, average in prior)
-    ):
-        setup = "long"
-    elif (
-        latest.close < averages[-1]
-        and latest.close < previous.low
-        and any(max(c.high, c.close) >= average for c, average in prior)
-    ):
-        setup = "short"
-    trigger: Direction = (
-        "long"
-        if hourly[-1].close > max(c.high for c in hourly[-21:-1])
-        else "short"
-        if hourly[-1].close < min(c.low for c in hourly[-21:-1])
-        else "neutral"
-    )
+    evidence["conditions"] = diagnose_watch(snapshot)
+    directions: list[Direction] = []
+    for interval in ("1d", "4h", "1h"):
+        long = all(
+            c.met
+            for c in evidence["conditions"]
+            if c.interval == interval and c.name.startswith("long:")
+        )
+        short = all(
+            c.met
+            for c in evidence["conditions"]
+            if c.interval == interval and c.name.startswith("short:")
+        )
+        directions.append("long" if long else "short" if short else "neutral")
+    bias, setup, trigger = directions
     signals: _Signals = {"bias": bias, "setup": setup, "trigger": trigger}
     if bias == "neutral":
         return WatchDecision(**evidence, **signals, reasons=("neutral_bias",))
@@ -124,7 +102,20 @@ def evaluate_watch(snapshot: WatchSnapshot) -> WatchDecision:
             action = "consider_short"
         case unreachable:
             assert_never(unreachable)
-    return WatchDecision(**evidence, **signals, action=action)
+    four = snapshot.series[1].candles
+    if cutoff is None:
+        raise ContextContractError(field="watch aligned cutoff")
+    plan = HypotheticalPlan(
+        direction=bias,
+        decision_as_of=cutoff,
+        invalidation=min(c.low for c in four[-4:-1])
+        if bias == "long"
+        else max(c.high for c in four[-4:-1]),
+        swing_start=four[-4].open_time,
+        swing_end=four[-2].close_time,
+        confirmed_at=four[-1].close_time,
+    )
+    return WatchDecision(**evidence, **signals, action=action, hypothetical=plan)
 
 
 def render_watch(decision: WatchDecision) -> str:
@@ -150,4 +141,4 @@ def render_watch(decision: WatchDecision) -> str:
     ):
         stamp = close_time.isoformat() if close_time is not None else "unavailable"
         lines.append(f"| {label} | {signal} | {stamp} | {status} |")
-    return "\n".join(lines)
+    return "\n".join(lines) + "\n\n" + render_watch_details(decision)

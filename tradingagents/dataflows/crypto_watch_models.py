@@ -8,6 +8,7 @@ from pydantic import AwareDatetime, Field, model_validator
 
 from .crypto_models import Asset, ContextContractError, FrozenModel, SourceFailure
 from .crypto_spot_models import PositivePrice, SpotSymbol
+from .crypto_watch_scenario_models import HypotheticalPlan
 
 Interval = Literal["1d", "4h", "1h"]
 Direction = Literal["long", "short", "neutral"]
@@ -38,6 +39,7 @@ FRESHNESS: Final[dict[Interval, timedelta]] = {
 class WatchRequest(FrozenModel):
     asset: Asset
     as_of: AwareDatetime | None = None
+    history_limit: int = Field(default=100, ge=1, le=1500, strict=True)
     timeout_seconds: float = Field(default=10, gt=0, le=60)
 
 
@@ -116,6 +118,16 @@ class WatchSnapshot(FrozenModel):
         return self
 
 
+class WatchCondition(FrozenModel):
+    interval: Interval
+    name: str
+    observed: Decimal
+    comparison: Literal[">", "<", "<=", ">="]
+    threshold: Decimal
+    met: bool
+    as_of: AwareDatetime
+
+
 class WatchDecision(FrozenModel):
     asset: Asset
     symbol: SpotSymbol
@@ -127,6 +139,9 @@ class WatchDecision(FrozenModel):
     trigger: Direction = "neutral"
     action: Literal["consider_long", "consider_short", "wait"] = "wait"
     reasons: tuple[WaitReason, ...] = ()
+    latest_closes: tuple[PositivePrice | None, ...] = (None, None, None)
+    conditions: tuple[WatchCondition, ...] = ()
+    hypothetical: HypotheticalPlan | None = None
     latest_close_times: tuple[AwareDatetime | None, ...] = (None, None, None)
     statuses: tuple[Literal["ok", "unavailable", "insufficient_history", "stale"], ...] = (
         "unavailable",
@@ -140,11 +155,12 @@ class WatchDecision(FrozenModel):
             self.symbol != f"{self.asset}USDT"
             or len(self.latest_close_times) != 3
             or len(self.statuses) != 3
+            or len(self.latest_closes) != 3
         ):
             raise ContextContractError(field="watch decision identity/coverage")
         match self.action:
             case "wait":
-                if not self.reasons:
+                if not self.reasons or self.hypothetical is not None:
                     raise ContextContractError(field="watch wait reasons")
                 return self
             case "consider_long":
@@ -155,4 +171,10 @@ class WatchDecision(FrozenModel):
                 assert_never(unreachable)
         if self.reasons or not aligned or any(status != "ok" for status in self.statuses):
             raise ContextContractError(field="watch decision alignment")
+        if (
+            self.hypothetical is None
+            or self.hypothetical.direction != self.bias
+            or self.hypothetical.decision_as_of != self.as_of
+        ):
+            raise ContextContractError(field="watch hypothetical alignment")
         return self
