@@ -78,7 +78,7 @@ def test_nonfinite_update_keeps_original_file(
     assert not path.with_suffix(".tmp").exists()
 
 
-@pytest.mark.parametrize("suffix", ["", " | resolved:2026-01-07"])
+@pytest.mark.parametrize("suffix", ["", " | resolved:2026-01-01", " | resolved:2026-01-07"])
 def test_legacy_numeric_fallback_has_unknown_provenance(suffix: str) -> None:
     data = (
         f"[2026-01-01 | BTC | Buy | +1.2% | -0.0% | 5d{suffix}]\n\n"
@@ -89,7 +89,7 @@ def test_legacy_numeric_fallback_has_unknown_provenance(suffix: str) -> None:
     assert entry["alpha_return"].hex() == (-0.0).hex()
     assert entry["holding_days"] == 5
     assert entry["provenance"] is None
-    assert entry["resolved"] == ("2026-01-07" if suffix else None)
+    assert entry["resolved"] == (suffix.split(":")[1] if suffix else None)
     assert "source" not in entry["outcome"] and "benchmark" not in entry["outcome"]
 
 
@@ -119,15 +119,75 @@ def test_mixed_order_duplicates_and_legacy_upgrade(
 
 
 @pytest.mark.parametrize("batch", [False, True])
-def test_opaque_bytes_survive_updates_and_rotation(tmp_path: Path, batch: bool) -> None:
-    path = tmp_path / "journal.md"
-    journal = TradingMemoryLog({"memory_log_path": str(path), "memory_log_max_entries": 1})
-    opaque = (
+@pytest.mark.parametrize(
+    "opaque",
+    [
         b'\x1e {"schema":"tradingagents.decision-journal","version":99,"x":-0.0}\r\n'
         b"\x1e{broken\r\n\xff\n"
-        b'\x1e{"schema":"tradingagents.decision-journal","version":2,"date":5}\n'
-    )
+        b'\x1e{"schema":"tradingagents.decision-journal","version":2,"date":5}\n',
+        *(
+            f"[{header}]\r\n\r\nDECISION:\r\nkeep".encode() + b"\xff\r\n" + codec.SEPARATOR.encode()
+            for header in (
+                "0000-bad | BTC | Buy | +1% | +1% | -7d | nonsense",
+                "2026-02-30 | BTC | Buy | pending",
+                "20260101 | BTC | Buy | pending",
+                "2026-W01-4 | BTC | Buy | pending",
+                "2026-01-01 | BTC | Buy | Pending",
+                "2026-02-30 | BTC | Buy | +1% | +1% | 7d",
+                *(
+                    f"2026-01-01 | BTC | Buy | {raw} | {alpha} | {holding}"
+                    for raw, alpha, holding in (
+                        ("+1", "+1%", "7d"),
+                        ("bad%", "+1%", "7d"),
+                        ("nan%", "+1%", "7d"),
+                        ("inf%", "+1%", "7d"),
+                        ("+1%", "+1", "7d"),
+                        ("+1%", "bad%", "7d"),
+                        ("+1%", "nan%", "7d"),
+                        ("+1%", "-inf%", "7d"),
+                        ("+1%", "+1%", "7"),
+                        ("+1%", "+1%", "7D"),
+                        ("+1%", "+1%", "badd"),
+                        ("+1%", "+1%", "0d"),
+                        ("+1%", "+1%", "-7d"),
+                    )
+                ),
+                *(
+                    f"2026-01-01 | BTC | Buy | +1% | +1% | 7d | {resolved}"
+                    for resolved in (
+                        "nonsense",
+                        "2026-01-08",
+                        "Resolved:2026-01-08",
+                        "resolved:2026-02-30",
+                        "resolved:20260108",
+                        "resolved:2026-W02-4",
+                        "resolved:2025-12-31",
+                    )
+                ),
+            )
+        ),
+    ],
+)
+def test_opaque_bytes_survive_updates_and_rotation(
+    tmp_path: Path, batch: bool, opaque: bytes
+) -> None:
+    path = tmp_path / "journal.md"
+    journal = TradingMemoryLog({"memory_log_path": str(path), "memory_log_max_entries": 1})
+    assert all(record.entry is None for record in codec.decode(opaque))
     path.write_bytes(opaque)
+    update = codec.OutcomeUpdate(
+        ticker="BTC",
+        trade_date=opaque[1:].split(b" | ")[0].decode(errors="surrogateescape"),
+        raw_return=0.1,
+        alpha_return=0.0,
+        holding_days=5,
+        reflection="invalid",
+    )
+    if batch:
+        journal.batch_update_with_outcomes([update])
+    else:
+        assert not journal.update_with_outcome(**update)
+    assert path.read_bytes() == opaque
     journal.store_decision("OLD", "2026-01-01", "Rating: Buy")
     journal.update_with_outcome("OLD", "2026-01-01", 0.1, 0.0, 5, "old")
     journal.store_decision("KEEP", "2026-02-01", "Rating: Hold")

@@ -135,18 +135,30 @@ def _legacy(raw: bytes) -> Entry | None:
     if pending != (len(fields) == 4):
         return None
     raw_return = alpha_return = days = None
+    resolved = None
     try:
+        if iso_date.fromisoformat(fields[0]).isoformat() != fields[0]:
+            return None
         if not pending:
-            raw_return = float(fields[3].removesuffix("%")) / 100
-            alpha_return = float(fields[4].removesuffix("%")) / 100
-            days = int(fields[5].removesuffix("d"))
-            if not math.isfinite(raw_return) or not math.isfinite(alpha_return):
+            if not (
+                fields[3].endswith("%") and fields[4].endswith("%") and fields[5].endswith("d")
+            ):
+                return None
+            raw_return = float(fields[3][:-1]) / 100
+            alpha_return = float(fields[4][:-1]) / 100
+            days = int(fields[5][:-1])
+            if not math.isfinite(raw_return) or not math.isfinite(alpha_return) or days <= 0:
+                return None
+        if len(fields) == 7:
+            if not fields[6].startswith("resolved:"):
+                return None
+            resolved = fields[6][len("resolved:") :].strip()
+            if iso_date.fromisoformat(resolved).isoformat() != resolved or resolved < fields[0]:
                 return None
     except ValueError:
         return None
     body = "\n".join(lines[1:]).strip()
     decision, reflection = _DECISION_RE.search(body), _REFLECTION_RE.search(body)
-    resolved = fields[6].removeprefix("resolved:").strip() if len(fields) == 7 else None
     return Entry(
         date=fields[0],
         ticker=fields[1],
