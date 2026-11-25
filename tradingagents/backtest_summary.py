@@ -125,7 +125,8 @@ def summarize_entries(entries: list[Entry]) -> BacktestSummary:
     for entry, alpha in resolved:
         ratings.setdefault(entry["rating"], []).append((entry, alpha))
         groups.setdefault(OutcomeGroup.from_entry(entry), []).append((entry, alpha))
-    unscored = sum(entry["rating"] == RATING_REVIEW for entry in entries)
+    pending = sum(entry["pending"] for entry in entries)
+    unscored = len(entries) - pending - len(resolved)
     windows = set()
     for group in groups:
         kind, _, count = group.window.partition(":")
@@ -135,7 +136,7 @@ def summarize_entries(entries: list[Entry]) -> BacktestSummary:
             windows.add(group.window)
     return BacktestSummary(
         resolved=len(resolved),
-        pending=len(entries) - len(resolved) - unscored,
+        pending=pending,
         by_rating={rating: _score(rows) for rating, rows in ratings.items()},
         unscored=unscored,
         holding=", ".join(sorted(windows)) or "the configured window",

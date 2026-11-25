@@ -182,9 +182,73 @@ def test_review_is_unscored_and_pending_never_enters_groups(tmp_path: Path):
 
     summary = summarize(_journal(tmp_path, documents))
 
-    assert (summary.resolved, summary.pending, summary.unscored) == (1, 1, 2)
+    assert (summary.resolved, summary.pending, summary.unscored) == (1, 2, 1)
     assert list(summary.by_rating) == ["Hold"]
     assert [key.rating for key in summary.by_group] == ["Hold"]
+
+
+@pytest.mark.parametrize(
+    "pending,rating,alpha,expected",
+    [
+        (True, "REVIEW", None, (1, 0, 0)),
+        (True, "Buy", "+9.0%", (1, 0, 0)),
+        (False, "REVIEW", "+9.0%", (0, 0, 1)),
+        (False, "REVIEW", None, (0, 0, 1)),
+        (False, "Buy", None, (0, 0, 1)),
+        (False, "Buy", "invalid", (0, 0, 1)),
+        (False, "Buy", "nan%", (0, 0, 1)),
+        (False, "Buy", "inf%", (0, 0, 1)),
+        (False, "Buy", "-inf%", (0, 0, 1)),
+        (False, "Buy", "+9.0%", (0, 1, 0)),
+        (False, "Hold", "+9.0%", (0, 1, 0)),
+    ],
+)
+def test_summary_buckets_partition_entries(
+    pending: bool, rating: str, alpha: str | None, expected: tuple[int, int, int]
+) -> None:
+    entry = codec.decode(b"[2026-01-01 | BTC | Buy | +1.0% | +0.2% | 5d]\nDECISION:\nold")[0].entry
+    assert entry is not None
+    entry.update(pending=pending, rating=rating, alpha=alpha, alpha_return=None)
+    entries = [entry]
+
+    summary = summarize_entries(entries)
+
+    assert (summary.pending, summary.resolved, summary.unscored) == expected
+    assert len(entries) == summary.pending + summary.resolved + summary.unscored
+    assert sum(score.count for score in summary.by_rating.values()) == expected[1]
+    assert sum(score.count for score in summary.by_group.values()) == expected[1]
+    rendered = summary.render()
+    assert f"pending: {expected[0]}" in rendered
+    assert ("Pending cells are not scored above; re-run to settle them." in rendered) == pending
+
+
+def test_mixed_entries_aggregate_only_scoreable_resolved_rows() -> None:
+    documents = [
+        _document(0.02),
+        _document(-0.04),
+        _document(0.06, "Hold"),
+        _document(0.90, "REVIEW"),
+        codec.pending_document("2026-01-02", "BTC", "REVIEW", "pending review"),
+        codec.pending_document("2026-01-03", "BTC", "Buy", "pending"),
+    ]
+    entries = [
+        record.entry
+        for document in documents
+        for record in codec.decode(codec.encode(document))
+        if record.entry is not None
+    ]
+    entries.append({**entries[0], "alpha_return": None, "alpha": "invalid"})
+
+    summary = summarize_entries(entries)
+
+    assert (summary.pending, summary.resolved, summary.unscored) == (2, 3, 2)
+    assert len(entries) == summary.pending + summary.resolved + summary.unscored
+    assert set(summary.by_rating) == {"Buy", "Hold"}
+    buy = summary.by_rating["Buy"]
+    assert (buy.count, buy.hit_rate, buy.mean_alpha) == pytest.approx((2, 0.5, -0.01))
+    hold = summary.by_rating["Hold"]
+    assert (hold.count, hold.hit_rate, hold.mean_alpha) == (1, None, 0.06)
+    assert {key.rating: score for key, score in summary.by_group.items()} == summary.by_rating
 
 
 def test_group_order_is_independent_of_journal_order(tmp_path: Path):
