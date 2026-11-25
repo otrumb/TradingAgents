@@ -1,10 +1,12 @@
 """Tests for TradingMemoryLog — storage, deferred reflection, PM injection, legacy removal."""
 
+import json
 from unittest.mock import MagicMock, patch
 
 import pandas as pd
 import pytest
 
+from tests.settlement_fixtures import outcome
 from tradingagents.agents.managers.portfolio_manager import create_portfolio_manager
 from tradingagents.agents.schemas import PortfolioDecision, PortfolioRating
 from tradingagents.graph.propagation import Propagator
@@ -31,18 +33,20 @@ DECISION_NO_RATING = (
 # Shared helpers
 # ---------------------------------------------------------------------------
 
+
 def make_log(tmp_path, filename="trading_memory.md"):
     config = {"memory_log_path": str(tmp_path / filename)}
     return TradingMemoryLog(config)
 
 
-def _seed_completed(tmp_path, ticker, date, decision_text, reflection_text, filename="trading_memory.md"):
+def _seed_completed(
+    tmp_path, ticker, date, decision_text, reflection_text, filename="trading_memory.md"
+):
     """Write a completed entry directly to file, bypassing the API."""
     entry = (
         f"[{date} | {ticker} | Buy | +1.0% | +0.5% | 5d]\n\n"
         f"DECISION:\n{decision_text}\n\n"
-        f"REFLECTION:\n{reflection_text}"
-        + _SEP
+        f"REFLECTION:\n{reflection_text}" + _SEP
     )
     with open(tmp_path / filename, "a", encoding="utf-8") as f:
         f.write(entry)
@@ -111,8 +115,8 @@ def _structured_pm_llm(captured: dict, decision: PortfolioDecision | None = None
 # Core: storage and read path
 # ---------------------------------------------------------------------------
 
-class TestTradingMemoryLogCore:
 
+class TestTradingMemoryLogCore:
     def test_store_creates_file(self, tmp_path):
         log = make_log(tmp_path)
         assert not (tmp_path / "trading_memory.md").exists()
@@ -159,12 +163,22 @@ class TestTradingMemoryLogCore:
         log.store_decision("NVDA", "2026-01-12", DECISION_SELL)
 
         updates = [
-            {"ticker": "NVDA", "trade_date": "2026-01-05",
-             "raw_return": 0.05, "alpha_return": 0.02, "holding_days": 5,
-             "reflection": "First correct."},
-            {"ticker": "NVDA", "trade_date": "2026-01-12",
-             "raw_return": -0.03, "alpha_return": -0.01, "holding_days": 5,
-             "reflection": "Second correct."},
+            {
+                "ticker": "NVDA",
+                "trade_date": "2026-01-05",
+                "raw_return": 0.05,
+                "alpha_return": 0.02,
+                "holding_days": 5,
+                "reflection": "First correct.",
+            },
+            {
+                "ticker": "NVDA",
+                "trade_date": "2026-01-12",
+                "raw_return": -0.03,
+                "alpha_return": -0.01,
+                "holding_days": 5,
+                "reflection": "Second correct.",
+            },
         ]
         log.batch_update_with_outcomes(updates)
 
@@ -178,7 +192,16 @@ class TestTradingMemoryLogCore:
         log = make_log(tmp_path)
         log.store_decision("NVDA", "2026-01-10", DECISION_BUY)
         text = (tmp_path / "trading_memory.md").read_text(encoding="utf-8")
-        assert "[2026-01-10 | NVDA | Buy | pending]" in text
+        assert text.startswith("\x1e") and text.endswith("\n")
+        document = json.loads(text[1:])
+        assert document["schema"] == "tradingagents.decision-journal"
+        assert document["version"] == 2
+        assert (document["date"], document["ticker"], document["rating"]) == (
+            "2026-01-10",
+            "NVDA",
+            "Buy",
+        )
+        assert document["outcome"] is None and document["reflection"] is None
 
     # Rating parsing
 
@@ -279,7 +302,13 @@ class TestTradingMemoryLogCore:
 
     def test_get_past_context_same_ticker(self, tmp_path):
         log = make_log(tmp_path)
-        _seed_completed(tmp_path, "NVDA", "2026-01-05", "Buy NVDA — AI capex thesis intact.", "Directionally correct.")
+        _seed_completed(
+            tmp_path,
+            "NVDA",
+            "2026-01-05",
+            "Buy NVDA — AI capex thesis intact.",
+            "Directionally correct.",
+        )
         ctx = log.get_past_context("NVDA")
         assert "Past analyses of NVDA" in ctx
         assert "Buy NVDA" in ctx
@@ -295,7 +324,7 @@ class TestTradingMemoryLogCore:
         """Only the n_same most recent same-ticker entries are included."""
         log = make_log(tmp_path)
         for i in range(6):
-            _seed_completed(tmp_path, "NVDA", f"2026-01-{i+1:02d}", f"Buy entry {i}.", "Correct.")
+            _seed_completed(tmp_path, "NVDA", f"2026-01-{i + 1:02d}", f"Buy entry {i}.", "Correct.")
         ctx = log.get_past_context("NVDA", n_same=5)
         assert "Buy entry 0" not in ctx
         assert "Buy entry 5" in ctx
@@ -305,7 +334,7 @@ class TestTradingMemoryLogCore:
         log = make_log(tmp_path)
         _seed_completed(tmp_path, "NVDA", "2026-06-01", "Buy entry June.", "Correct.")
         for i in range(5):
-            _seed_completed(tmp_path, "NVDA", f"2026-01-{i+1:02d}", f"Buy entry {i}.", "Correct.")
+            _seed_completed(tmp_path, "NVDA", f"2026-01-{i + 1:02d}", f"Buy entry {i}.", "Correct.")
         ctx = log.get_past_context("NVDA", n_same=5)
         assert "Buy entry June" in ctx and "Buy entry 0" not in ctx
         assert ctx.index("Buy entry June") < ctx.index("Buy entry 4")
@@ -314,7 +343,7 @@ class TestTradingMemoryLogCore:
         """Only the n_cross most recent cross-ticker entries are included."""
         log = make_log(tmp_path)
         for i, ticker in enumerate(["AAPL", "MSFT", "GOOG", "META"]):
-            _seed_completed(tmp_path, ticker, f"2026-01-{i+1:02d}", f"Buy {ticker}.", "Correct.")
+            _seed_completed(tmp_path, ticker, f"2026-01-{i + 1:02d}", f"Buy {ticker}.", "Correct.")
         ctx = log.get_past_context("NVDA", n_cross=3)
         assert "AAPL" not in ctx
         assert "META" in ctx
@@ -333,18 +362,20 @@ class TestTradingMemoryLogCore:
         """Without max_entries, all resolved entries are kept."""
         log = make_log(tmp_path)
         for i in range(7):
-            _resolve_entry(log, "NVDA", f"2026-01-{i+1:02d}", DECISION_BUY, f"Lesson {i}.")
+            _resolve_entry(log, "NVDA", f"2026-01-{i + 1:02d}", DECISION_BUY, f"Lesson {i}.")
         assert len(log.load_entries()) == 7
 
     def test_rotation_prunes_oldest_resolved(self, tmp_path):
         """When max_entries is set and exceeded, oldest resolved entries are pruned."""
-        log = TradingMemoryLog({
-            "memory_log_path": str(tmp_path / "trading_memory.md"),
-            "memory_log_max_entries": 3,
-        })
+        log = TradingMemoryLog(
+            {
+                "memory_log_path": str(tmp_path / "trading_memory.md"),
+                "memory_log_max_entries": 3,
+            }
+        )
         # Resolve 5 entries; rotation should keep only the 3 most recent.
         for i in range(5):
-            _resolve_entry(log, "NVDA", f"2026-01-{i+1:02d}", DECISION_BUY, f"Lesson {i}.")
+            _resolve_entry(log, "NVDA", f"2026-01-{i + 1:02d}", DECISION_BUY, f"Lesson {i}.")
         entries = log.load_entries()
         assert len(entries) == 3
         # Confirm the OLDEST were dropped, not the newest.
@@ -353,23 +384,31 @@ class TestTradingMemoryLogCore:
 
     def test_rotation_prunes_the_oldest_dated_not_the_first_written(self, tmp_path):
         """A backfill writes older dates last; rotation still keeps the newest decisions."""
-        log = TradingMemoryLog({
-            "memory_log_path": str(tmp_path / "trading_memory.md"),
-            "memory_log_max_entries": 3,
-        })
+        log = TradingMemoryLog(
+            {
+                "memory_log_path": str(tmp_path / "trading_memory.md"),
+                "memory_log_max_entries": 3,
+            }
+        )
         for date in ("2026-06-01", "2026-06-02", "2026-01-01", "2026-01-02", "2026-01-03"):
             _resolve_entry(log, "NVDA", date, DECISION_BUY, f"Lesson {date}.")
-        assert sorted(e["date"] for e in log.load_entries()) == ["2026-01-03", "2026-06-01", "2026-06-02"]
+        assert sorted(e["date"] for e in log.load_entries()) == [
+            "2026-01-03",
+            "2026-06-01",
+            "2026-06-02",
+        ]
 
     def test_rotation_never_prunes_pending(self, tmp_path):
         """Pending entries (unresolved) are kept regardless of the cap."""
-        log = TradingMemoryLog({
-            "memory_log_path": str(tmp_path / "trading_memory.md"),
-            "memory_log_max_entries": 2,
-        })
+        log = TradingMemoryLog(
+            {
+                "memory_log_path": str(tmp_path / "trading_memory.md"),
+                "memory_log_max_entries": 2,
+            }
+        )
         # 3 resolved + 2 pending. With cap=2, only 2 resolved survive; both pending stay.
         for i in range(3):
-            _resolve_entry(log, "NVDA", f"2026-01-{i+1:02d}", DECISION_BUY, f"Resolved {i}.")
+            _resolve_entry(log, "NVDA", f"2026-01-{i + 1:02d}", DECISION_BUY, f"Resolved {i}.")
         log.store_decision("NVDA", "2026-02-01", DECISION_BUY)
         log.store_decision("NVDA", "2026-02-02", DECISION_OVERWEIGHT)
         # Trigger rotation by resolving one more entry — pending entries must stay.
@@ -382,12 +421,14 @@ class TestTradingMemoryLogCore:
 
     def test_rotation_under_cap_is_noop(self, tmp_path):
         """No rotation when resolved count <= max_entries."""
-        log = TradingMemoryLog({
-            "memory_log_path": str(tmp_path / "trading_memory.md"),
-            "memory_log_max_entries": 10,
-        })
+        log = TradingMemoryLog(
+            {
+                "memory_log_path": str(tmp_path / "trading_memory.md"),
+                "memory_log_max_entries": 10,
+            }
+        )
         for i in range(3):
-            _resolve_entry(log, "NVDA", f"2026-01-{i+1:02d}", DECISION_BUY, f"Lesson {i}.")
+            _resolve_entry(log, "NVDA", f"2026-01-{i + 1:02d}", DECISION_BUY, f"Lesson {i}.")
         assert len(log.load_entries()) == 3
 
     # Rating parsing: markdown bold and numbered list formats
@@ -409,9 +450,7 @@ class TestTradingMemoryLogCore:
     def test_rating_label_wins_over_prose_with_markdown(self, tmp_path):
         """Rating: **Sell** must win even when prose contains a conflicting rating word."""
         decision = (
-            "The buy thesis is weakened by guidance.\n"
-            "Rating: **Sell**\n"
-            "Exit before earnings."
+            "The buy thesis is weakened by guidance.\nRating: **Sell**\nExit before earnings."
         )
         log = make_log(tmp_path)
         log.store_decision("NVDA", "2026-01-10", decision)
@@ -429,15 +468,15 @@ class TestTradingMemoryLogCore:
 # Deferred reflection: update_with_outcome, Reflector, fetch_returns
 # ---------------------------------------------------------------------------
 
-class TestDeferredReflection:
 
+class TestDeferredReflection:
     # update_with_outcome
 
     def test_update_replaces_pending_tag(self, tmp_path):
         log = make_log(tmp_path)
         log.store_decision("NVDA", "2026-01-10", DECISION_BUY)
         log.update_with_outcome("NVDA", "2026-01-10", 0.042, 0.021, 5, "Momentum confirmed.")
-        text = (tmp_path / "trading_memory.md").read_text(encoding="utf-8")
+        text = log._format_full(log.load_entries()[0])
         assert "[2026-01-10 | NVDA | Buy | pending]" not in text
         assert "+4.2%" in text
         assert "+2.1%" in text
@@ -500,7 +539,7 @@ class TestDeferredReflection:
         assert e["raw"] == "+4.2%"
         assert e["alpha"] == "+2.1%"
         assert e["holding"] == "5d"
-        raw_text = (tmp_path / "trading_memory.md").read_text(encoding="utf-8")
+        raw_text = log._format_full(e)
         assert "[2026-01-10 | NVDA | Buy | +4.2% | +2.1% | 5d]\n\nDECISION:" in raw_text
 
     # Reflector.reflect_on_final_decision
@@ -533,12 +572,14 @@ class TestDeferredReflection:
 
     def test_fetch_returns_valid_ticker(self):
         stock_prices = [100.0, 102.0, 104.0, 103.0, 105.0, 106.0, 107.0]
-        spy_prices   = [400.0, 402.0, 404.0, 403.0, 405.0, 406.0, 407.0]
+        spy_prices = [400.0, 402.0, 404.0, 403.0, 405.0, 406.0, 407.0]
         with patch("yfinance.Ticker") as mock_ticker_cls:
+
             def _make_ticker(sym):
                 m = MagicMock()
                 m.history.return_value = _price_df(spy_prices if sym == "SPY" else stock_prices)
                 return m
+
             mock_ticker_cls.side_effect = _make_ticker
             raw, alpha, days, resolved = settlement.fetch_returns("NVDA", "2026-01-05")
         assert raw is not None and alpha is not None and days is not None
@@ -569,12 +610,14 @@ class TestDeferredReflection:
         """SPY having fewer rows than the stock (but still a full window) must
         not raise IndexError."""
         stock_prices = [100.0, 102.0, 104.0, 103.0, 105.0, 106.0, 107.0, 108.0]  # 8 rows
-        spy_prices   = [400.0, 402.0, 403.0, 405.0, 406.0, 407.0, 408.0]         # 7 rows
+        spy_prices = [400.0, 402.0, 403.0, 405.0, 406.0, 407.0, 408.0]  # 7 rows
         with patch("yfinance.Ticker") as mock_ticker_cls:
+
             def _make_ticker(sym):
                 m = MagicMock()
                 m.history.return_value = _price_df(spy_prices if sym == "SPY" else stock_prices)
                 return m
+
             mock_ticker_cls.side_effect = _make_ticker
             raw, alpha, days, resolved = settlement.fetch_returns("NVDA", "2026-01-05")
         assert raw is not None and alpha is not None
@@ -584,16 +627,20 @@ class TestDeferredReflection:
     def test_a_decision_is_scored_from_the_first_close_after_its_date(self):
         """#1518: news published after the close on the decision date reaches the
         analysts, so the close of that date is not a price they could have traded at."""
-        stock_prices = [100.0, 150.0, 150.0, 150.0, 150.0, 150.0, 165.0]   # jumps on the next close
-        spy_prices   = [400.0] * 7
+        stock_prices = [100.0, 150.0, 150.0, 150.0, 150.0, 150.0, 165.0]  # jumps on the next close
+        spy_prices = [400.0] * 7
         with patch("yfinance.Ticker") as mock_ticker_cls:
+
             def _make_ticker(sym):
                 m = MagicMock()
                 m.history.return_value = _price_df(spy_prices if sym == "SPY" else stock_prices)
                 return m
+
             mock_ticker_cls.side_effect = _make_ticker
             raw, alpha, days, resolved = settlement.fetch_returns("NVDA", "2026-01-05")
-        assert raw == pytest.approx(0.10) and alpha == pytest.approx(0.10)   # 150 -> 165, not 100 -> 150
+        assert raw == pytest.approx(0.10) and alpha == pytest.approx(
+            0.10
+        )  # 150 -> 165, not 100 -> 150
         assert resolved == "2026-01-11"
 
     def test_fetch_returns_incomplete_window_stays_pending(self):
@@ -601,12 +648,14 @@ class TestDeferredReflection:
         unavailable (all-None) so the entry stays pending, rather than settling
         on a premature partial return."""
         stock_prices = [100.0, 102.0, 104.0]  # only 3 rows; holding window is 5
-        spy_prices   = [400.0, 402.0, 404.0]
+        spy_prices = [400.0, 402.0, 404.0]
         with patch("yfinance.Ticker") as mock_ticker_cls:
+
             def _make_ticker(sym):
                 m = MagicMock()
                 m.history.return_value = _price_df(spy_prices if sym == "SPY" else stock_prices)
                 return m
+
             mock_ticker_cls.side_effect = _make_ticker
             result = settlement.fetch_returns("NVDA", "2026-01-05")
         assert result == (None, None, None, None)
@@ -627,9 +676,14 @@ class TestDeferredReflection:
         config = {
             "benchmark_ticker": None,
             "benchmark_map": {
-                ".T": "^N225", ".HK": "^HSI", ".NS": "^NSEI",
-                ".L": "^FTSE", ".TO": "^GSPTSE", ".AX": "^AXJO",
-                ".BO": "^BSESN", "": "SPY",
+                ".T": "^N225",
+                ".HK": "^HSI",
+                ".NS": "^NSEI",
+                ".L": "^FTSE",
+                ".TO": "^GSPTSE",
+                ".AX": "^AXJO",
+                ".BO": "^BSESN",
+                "": "SPY",
             },
         }
         assert settlement.resolve_benchmark("7203.T", config) == "^N225"
@@ -647,8 +701,8 @@ class TestDeferredReflection:
         """A-share tickers route to their exchange composite (uses the real
         default benchmark_map, since A-share support relies on it)."""
         from tradingagents.default_config import DEFAULT_CONFIG
-        config = {"benchmark_ticker": None,
-                             "benchmark_map": DEFAULT_CONFIG["benchmark_map"]}
+
+        config = {"benchmark_ticker": None, "benchmark_map": DEFAULT_CONFIG["benchmark_map"]}
         assert settlement.resolve_benchmark("600519.SS", config) == "000001.SS"
         assert settlement.resolve_benchmark("000001.SZ", config) == "399001.SZ"
         # .SH is the exchange's own suffix; Yahoo spells Shanghai .SS (#1260)
@@ -657,17 +711,29 @@ class TestDeferredReflection:
     def test_resolve_benchmark_brazil(self):
         """B3 tickers were measured against SPY."""
         from tradingagents.default_config import DEFAULT_CONFIG
-        config = {"benchmark_ticker": None,
-                             "benchmark_map": DEFAULT_CONFIG["benchmark_map"]}
+
+        config = {"benchmark_ticker": None, "benchmark_map": DEFAULT_CONFIG["benchmark_map"]}
         assert settlement.resolve_benchmark("PETR4.SA", config) == "^BVSP"
 
-    @pytest.mark.parametrize(("ticker", "index"), [
-        ("2330.TW", "^TWII"), ("6488.TWO", "^TWII"), ("005930.KS", "^KS11"), ("247540.KQ", "^KQ11"), ("D05.SI", "^STI"), ("SAP.DE", "^GDAXI"),
-        ("MC.PA", "^FCHI"), ("ASML.AS", "^AEX"), ("NESN.SW", "^SSMI"), ("ENI.MI", "FTSEMIB.MI"),
-    ])
+    @pytest.mark.parametrize(
+        ("ticker", "index"),
+        [
+            ("2330.TW", "^TWII"),
+            ("6488.TWO", "^TWII"),
+            ("005930.KS", "^KS11"),
+            ("247540.KQ", "^KQ11"),
+            ("D05.SI", "^STI"),
+            ("SAP.DE", "^GDAXI"),
+            ("MC.PA", "^FCHI"),
+            ("ASML.AS", "^AEX"),
+            ("NESN.SW", "^SSMI"),
+            ("ENI.MI", "FTSEMIB.MI"),
+        ],
+    )
     def test_resolve_benchmark_regional_indexes(self, ticker, index):
         """Taiwan, Korea, Singapore and the main European exchanges were measured against SPY."""
         from tradingagents.default_config import DEFAULT_CONFIG
+
         config = {"benchmark_ticker": None, "benchmark_map": DEFAULT_CONFIG["benchmark_map"]}
         assert settlement.resolve_benchmark(ticker, config) == index
 
@@ -733,7 +799,7 @@ class TestDeferredReflection:
         """Pending AAPL entry is not resolved when the run is for NVDA."""
         log = make_log(tmp_path)
         log.store_decision("AAPL", "2026-01-10", DECISION_BUY)
-        with patch.object(settlement, "fetch_returns", return_value=(0.05, 0.02, 5, "2026-01-12")) as fetch:
+        with patch.object(settlement, "fetch_outcome", return_value=outcome()) as fetch:
             settlement.settle_pending("NVDA", log, MagicMock(), {})
         fetch.assert_not_called()
         assert len(log.get_pending_entries()) == 1
@@ -744,7 +810,7 @@ class TestDeferredReflection:
         log.store_decision("NVDA", "2026-01-05", DECISION_BUY)
         reflector = MagicMock()
         reflector.reflect_on_final_decision.return_value = "Momentum confirmed."
-        with patch.object(settlement, "fetch_returns", return_value=(0.05, 0.02, 5, "2026-01-12")):
+        with patch.object(settlement, "fetch_outcome", return_value=outcome()):
             settlement.settle_pending("NVDA", log, reflector, {})
         assert log.get_pending_entries() == []
         entries = log.load_entries()
@@ -760,7 +826,7 @@ class TestDeferredReflection:
         log = make_log(tmp_path)
         log.store_decision("NVDA", "2026-01-05", DECISION_BUY)
         reflector = MagicMock()
-        with patch.object(settlement, "fetch_returns", return_value=(None, None, None, None)):
+        with patch.object(settlement, "fetch_outcome", return_value=None):
             settlement.settle_pending("NVDA", log, reflector, {})
         assert len(log.get_pending_entries()) == 1  # still pending
         reflector.reflect_on_final_decision.assert_not_called()
@@ -770,8 +836,8 @@ class TestDeferredReflection:
 # Portfolio Manager injection: past_context in state and prompt
 # ---------------------------------------------------------------------------
 
-class TestPortfolioManagerInjection:
 
+class TestPortfolioManagerInjection:
     # past_context in initial state
 
     def test_past_context_in_initial_state(self):
@@ -791,7 +857,9 @@ class TestPortfolioManagerInjection:
         captured = {}
         llm = _structured_pm_llm(captured)
         pm_node = create_portfolio_manager(llm)
-        state = _make_pm_state(past_context="[2026-01-05 | NVDA | Buy | +5.0% | +2.0% | 5d]\nGreat call.")
+        state = _make_pm_state(
+            past_context="[2026-01-05 | NVDA | Buy | +5.0% | +2.0% | 5d]\nGreat call."
+        )
         pm_node(state)
         assert "Lessons from prior decisions and outcomes" in captured["prompt"]
         assert "Great call." in captured["prompt"]
@@ -865,7 +933,7 @@ class TestPortfolioManagerInjection:
         """More than 5 same-ticker completed entries → only 5 injected."""
         log = make_log(tmp_path)
         for i in range(7):
-            _resolve_entry(log, "NVDA", f"2026-01-{i+1:02d}", DECISION_BUY, f"Lesson {i}.")
+            _resolve_entry(log, "NVDA", f"2026-01-{i + 1:02d}", DECISION_BUY, f"Lesson {i}.")
         result = log.get_past_context("NVDA", n_same=5)
         lessons_present = sum(1 for i in range(7) if f"Lesson {i}." in result)
         assert lessons_present == 5
@@ -875,7 +943,7 @@ class TestPortfolioManagerInjection:
         log = make_log(tmp_path)
         tickers = ["AAPL", "MSFT", "TSLA", "AMZN", "GOOG"]
         for i, ticker in enumerate(tickers):
-            _resolve_entry(log, ticker, f"2026-01-{i+1:02d}", DECISION_BUY, f"{ticker} lesson.")
+            _resolve_entry(log, ticker, f"2026-01-{i + 1:02d}", DECISION_BUY, f"{ticker} lesson.")
         result = log.get_past_context("NVDA", n_cross=3)
         cross_count = sum(result.count(f"{t} lesson.") for t in tickers)
         assert cross_count == 3
@@ -902,16 +970,18 @@ class TestPortfolioManagerInjection:
 # Legacy removal: BM25 / FinancialSituationMemory fully gone
 # ---------------------------------------------------------------------------
 
-class TestLegacyRemoval:
 
+class TestLegacyRemoval:
     def test_financial_situation_memory_removed(self):
         """FinancialSituationMemory must not be importable from the memory module."""
         import tradingagents.memory as m
+
         assert not hasattr(m, "FinancialSituationMemory")
 
     def test_bm25_not_imported(self):
         """rank_bm25 must not be present in the memory module namespace."""
         import tradingagents.memory as m
+
         assert not hasattr(m, "BM25Okapi")
 
     def test_reflect_and_remember_removed(self):
@@ -939,16 +1009,23 @@ class TestLegacyRemoval:
             "news_report": "",
             "fundamentals_report": "",
             "investment_debate_state": {
-                "bull_history": "", "bear_history": "", "history": "",
+                "bull_history": "",
+                "bear_history": "",
+                "history": "",
                 "current_response": "",
             },
             "investment_plan": "",
             "trader_investment_plan": "",
             "risk_debate_state": {
-                "aggressive_history": "", "conservative_history": "",
-                "neutral_history": "", "history": "",
-                "current_aggressive_response": "", "current_conservative_response": "",
-                "current_neutral_response": "", "count": 1, "latest_speaker": "",
+                "aggressive_history": "",
+                "conservative_history": "",
+                "neutral_history": "",
+                "history": "",
+                "current_aggressive_response": "",
+                "current_conservative_response": "",
+                "current_neutral_response": "",
+                "count": 1,
+                "latest_speaker": "",
             },
         }
         mock_graph = MagicMock()
@@ -960,9 +1037,7 @@ class TestLegacyRemoval:
         mock_graph.propagator.get_graph_args.return_value = {}
         # Bind the real _run_graph so propagate's call to self._run_graph executes
         # the actual write path instead of the auto-MagicMock.
-        mock_graph._run_graph = functools.partial(
-            TradingAgentsGraph._run_graph, mock_graph
-        )
+        mock_graph._run_graph = functools.partial(TradingAgentsGraph._run_graph, mock_graph)
         mock_graph.record_decision = functools.partial(
             TradingAgentsGraph.record_decision, mock_graph
         )
@@ -977,6 +1052,8 @@ class TestLegacyRemoval:
 def test_a_failed_reflection_leaves_the_entry_pending_and_lets_the_run_start(tmp_path, monkeypatch):
     """Settling past decisions happens on the way into a new run, and reflection
     calls an LLM. A transient failure there must not stop the new analysis."""
+    from dataclasses import replace
+
     from tradingagents.graph.trading_graph import TradingAgentsGraph
     from tradingagents.memory import TradingMemoryLog
 
@@ -986,8 +1063,17 @@ def test_a_failed_reflection_leaves_the_entry_pending_and_lets_the_run_start(tmp
     graph.memory_log.store_decision("NVDA", "2026-01-05", "Rating: Buy\n\nx")
     graph.memory_log.store_decision("NVDA", "2026-01-12", "Rating: Sell\n\ny")
     monkeypatch.setattr(settlement, "resolve_benchmark", lambda t, c: "SPY")
-    monkeypatch.setattr(settlement, "fetch_returns",
-                        lambda t, d, holding_days=5, benchmark=None: (0.01, 0.005, holding_days, "2026-01-19"))
+    detailed = outcome(0.01, 0.005, resolved="2026-01-19")
+    detailed = replace(
+        detailed,
+        asset=replace(detailed.asset, entry_date="2026-01-13"),
+        benchmark=replace(detailed.benchmark, entry_date="2026-01-13"),
+    )
+    monkeypatch.setattr(
+        settlement,
+        "fetch_outcome",
+        lambda t, d, holding_days=5, benchmark=None: detailed,
+    )
 
     class _Reflector:
         calls = 0
@@ -1022,9 +1108,9 @@ def test_the_holding_window_is_configurable(tmp_path, monkeypatch):
 
     def _returns(ticker, date, holding_days=5, benchmark=None):
         asked["holding_days"] = holding_days
-        return 0.05, 0.02, holding_days, "2026-02-02"
+        return outcome(0.05, 0.02, holding_days, "2026-02-02")
 
-    monkeypatch.setattr(settlement, "fetch_returns", _returns)
+    monkeypatch.setattr(settlement, "fetch_outcome", _returns)
     graph.reflector = type("R", (), {"reflect_on_final_decision": lambda self, **kw: "lesson"})()
 
     graph.settle_pending("NVDA")
@@ -1056,6 +1142,7 @@ def test_a_longer_window_asks_for_enough_price_history(monkeypatch):
         def history(self, start, end):
             asked["start"], asked["end"] = start, end
             import pandas as pd
+
             days = pd.bdate_range(start, end)
             return pd.DataFrame({"Close": range(len(days))}, index=days)
 
@@ -1099,9 +1186,11 @@ def test_concurrent_writers_keep_every_decision_and_outcome(tmp_path):
 
 def _closes(by_symbol):
     """A get_closes stand-in serving each symbol's series between the dates asked."""
+
     def get_closes(symbol, start_date, end_date):
         series = by_symbol[symbol]
         return series[(series.index >= start_date) & (series.index < end_date)]
+
     return get_closes
 
 
@@ -1109,8 +1198,12 @@ def _closes(by_symbol):
 class TestSettlementWindow:
     """Stock and benchmark are measured over the same dates, whatever their calendars."""
 
-    def test_a_seven_day_market_is_scored_against_the_benchmark_over_the_same_dates(self, monkeypatch):
-        coin = pd.Series([100.0 + i for i in range(10)], index=pd.date_range("2026-01-03", periods=10, freq="D"))
+    def test_a_seven_day_market_is_scored_against_the_benchmark_over_the_same_dates(
+        self, monkeypatch
+    ):
+        coin = pd.Series(
+            [100.0 + i for i in range(10)], index=pd.date_range("2026-01-03", periods=10, freq="D")
+        )
         weekdays = pd.bdate_range("2025-12-29", "2026-01-16")
         spy = pd.Series([400.0 + 2 * i for i in range(len(weekdays))], index=weekdays)
         monkeypatch.setattr(settlement, "get_closes", _closes({"BTC-USD": coin, "SPY": spy}))
@@ -1125,8 +1218,10 @@ class TestSettlementWindow:
     def test_bars_stamped_in_different_time_zones_meet_on_their_dates(self, monkeypatch):
         # Yahoo stamps a coin's daily bar at midnight UTC and SPY's at midnight
         # New York, five hours later: the same day, not the day after.
-        coin = pd.Series([100.0 + i for i in range(10)],
-                         index=pd.date_range("2026-01-03", periods=10, freq="D", tz="UTC"))
+        coin = pd.Series(
+            [100.0 + i for i in range(10)],
+            index=pd.date_range("2026-01-03", periods=10, freq="D", tz="UTC"),
+        )
         weekdays = pd.bdate_range("2025-12-29", "2026-01-16", tz="America/New_York")
         spy = pd.Series([400.0 + 2 * i for i in range(len(weekdays))], index=weekdays)
         monkeypatch.setattr(settlement, "get_closes", _closes({"BTC-USD": coin, "SPY": spy}))
@@ -1135,18 +1230,31 @@ class TestSettlementWindow:
 
         assert resolved == "2026-01-09"
         spy_by_day = spy.tz_localize(None)
-        assert alpha == pytest.approx(raw - (spy_by_day["2026-01-09"] / spy_by_day["2026-01-02"] - 1))
+        assert alpha == pytest.approx(
+            raw - (spy_by_day["2026-01-09"] / spy_by_day["2026-01-02"] - 1)
+        )
 
     def test_the_outcome_waits_for_the_benchmark_to_trade_through_the_window(self, monkeypatch):
-        coin = pd.Series([100.0 + i for i in range(10)], index=pd.date_range("2026-01-03", periods=10, freq="D"))
-        spy = pd.Series([400.0, 401.0, 402.0], index=pd.to_datetime(["2026-01-02", "2026-01-05", "2026-01-06"]))
+        coin = pd.Series(
+            [100.0 + i for i in range(10)], index=pd.date_range("2026-01-03", periods=10, freq="D")
+        )
+        spy = pd.Series(
+            [400.0, 401.0, 402.0], index=pd.to_datetime(["2026-01-02", "2026-01-05", "2026-01-06"])
+        )
         monkeypatch.setattr(settlement, "get_closes", _closes({"BTC-USD": coin, "SPY": spy}))
 
-        assert settlement.fetch_returns("BTC-USD", "2026-01-03", 5, "SPY") == (None, None, None, None)
+        assert settlement.fetch_returns("BTC-USD", "2026-01-03", 5, "SPY") == (
+            None,
+            None,
+            None,
+            None,
+        )
 
     def test_a_missing_close_is_skipped_not_scored(self, monkeypatch):
         idx = pd.bdate_range("2026-01-05", periods=8)
-        stock = pd.Series([100.0, float("nan"), 101.0, 102.0, 103.0, 104.0, 105.0, 106.0], index=idx)
+        stock = pd.Series(
+            [100.0, float("nan"), 101.0, 102.0, 103.0, 104.0, 105.0, 106.0], index=idx
+        )
         spy = pd.Series([400.0 + i for i in range(8)], index=idx)
         monkeypatch.setattr(settlement, "get_closes", _closes({"NVDA": stock, "SPY": spy}))
 
@@ -1167,14 +1275,23 @@ class TestSettlementUsesFinalCloses:
         days = pd.bdate_range("2026-01-02", "2026-01-13", tz="Asia/Shanghai")
         stock = pd.Series([100.0 + i for i in range(len(days))], index=days)
         index = pd.Series([3000.0] * len(days), index=days)
-        monkeypatch.setattr(settlement, "get_closes", _closes({"600519.SS": stock, "000001.SS": index}))
+        monkeypatch.setattr(
+            settlement, "get_closes", _closes({"600519.SS": stock, "000001.SS": index})
+        )
         monkeypatch.setattr(settlement, "_now", lambda: pd.Timestamp("2026-01-13 01:12", tz="UTC"))
 
         # Decided Mon 5: entry Tue 6, exit five sessions later on Tue 13, today.
-        assert settlement.fetch_returns("600519.SS", "2026-01-05", 5, "000001.SS") == (None, None, None, None)
+        assert settlement.fetch_returns("600519.SS", "2026-01-05", 5, "000001.SS") == (
+            None,
+            None,
+            None,
+            None,
+        )
 
         monkeypatch.setattr(settlement, "_now", lambda: pd.Timestamp("2026-01-14 01:12", tz="UTC"))
-        assert settlement.fetch_returns("600519.SS", "2026-01-05", 5, "000001.SS")[3] == "2026-01-13"
+        assert (
+            settlement.fetch_returns("600519.SS", "2026-01-05", 5, "000001.SS")[3] == "2026-01-13"
+        )
 
     def test_a_decision_before_a_long_market_closure_settles(self, monkeypatch):
         # The exchange is shut Thu 1 to Wed 7 October.
@@ -1182,10 +1299,14 @@ class TestSettlementUsesFinalCloses:
         days = days[(days < "2026-10-01") | (days > "2026-10-07")]
         stock = pd.Series([100.0 + i for i in range(len(days))], index=days)
         index = pd.Series([3000.0 + i for i in range(len(days))], index=days)
-        monkeypatch.setattr(settlement, "get_closes", _closes({"600519.SS": stock, "000001.SS": index}))
+        monkeypatch.setattr(
+            settlement, "get_closes", _closes({"600519.SS": stock, "000001.SS": index})
+        )
         monkeypatch.setattr(settlement, "_now", lambda: pd.Timestamp("2026-11-02 08:00", tz="UTC"))
 
-        raw, alpha, days_held, resolved = settlement.fetch_returns("600519.SS", "2026-09-29", 5, "000001.SS")
+        raw, alpha, days_held, resolved = settlement.fetch_returns(
+            "600519.SS", "2026-09-29", 5, "000001.SS"
+        )
 
         # Entry Wed 30 September, then five sessions from Thu 8 October.
         assert resolved == "2026-10-14" and days_held == 5
@@ -1237,7 +1358,7 @@ def test_a_close_that_is_not_a_price_is_skipped_not_scored(monkeypatch):
 
     raw, alpha, _, _ = settlement.fetch_returns("NVDA", "2026-01-02", 5, "SPY")
 
-    assert raw == pytest.approx(105.0 / 100.0 - 1)   # the window opens on the first real close
+    assert raw == pytest.approx(105.0 / 100.0 - 1)  # the window opens on the first real close
 
 
 @pytest.mark.unit
@@ -1250,11 +1371,14 @@ class TestSettleAll:
         log.store_decision("MSFT", "2026-01-05", DECISION_BUY)
         idx = pd.bdate_range("2026-01-02", periods=12)
         series = pd.Series([100.0 + i for i in range(12)], index=idx)
-        monkeypatch.setattr(settlement, "get_closes", _closes({"AAPL": series, "MSFT": series, "SPY": series}))
+        monkeypatch.setattr(
+            settlement, "get_closes", _closes({"AAPL": series, "MSFT": series, "SPY": series})
+        )
 
         class _Reflector:
             def reflect_on_final_decision(self, **kwargs):
                 return "Held up."
+
         return log, _Reflector()
 
     def test_every_ticker_with_a_due_decision_is_settled(self, tmp_path, monkeypatch):
@@ -1287,9 +1411,14 @@ def test_the_graph_settles_every_ticker_under_its_own_config(tmp_path, monkeypat
     graph.config = {"holding_period_days": 5, "output_language": "Deutsch"}
     graph.memory_log, graph.reflector = make_log(tmp_path), object()
     seen = []
-    monkeypatch.setattr(settlement, "settle_all_pending",
-                        lambda log, reflector, config, wait=True: seen.append(get_config()["output_language"])
-                        or settlement.Settlement(settled=[("AAPL", "2026-01-05")]))
+    monkeypatch.setattr(
+        settlement,
+        "settle_all_pending",
+        lambda log, reflector, config, wait=True: (
+            seen.append(get_config()["output_language"])
+            or settlement.Settlement(settled=[("AAPL", "2026-01-05")])
+        ),
+    )
 
     assert graph.settle_all_pending().settled == [("AAPL", "2026-01-05")]
     assert seen == ["Deutsch"]
@@ -1304,7 +1433,9 @@ class TestSettlementOnceAndDurably:
         log = make_log(tmp_path)
         for date in dates:
             log.store_decision("AAPL", date, DECISION_BUY)
-        series = pd.Series([100.0 + i for i in range(40)], index=pd.bdate_range("2026-01-02", periods=40))
+        series = pd.Series(
+            [100.0 + i for i in range(40)], index=pd.bdate_range("2026-01-02", periods=40)
+        )
         monkeypatch.setattr(settlement, "get_closes", _closes({"AAPL": series, "SPY": series}))
         return log
 
@@ -1322,9 +1453,16 @@ class TestSettlementOnceAndDurably:
                 return "Held up."
 
         results = []
-        threads = [threading.Thread(target=lambda: results.append(
-            settlement.settle_pending("AAPL", make_log(tmp_path), _Slow(), {"holding_period_days": 5})))
-            for _ in range(2)]
+        threads = [
+            threading.Thread(
+                target=lambda: results.append(
+                    settlement.settle_pending(
+                        "AAPL", make_log(tmp_path), _Slow(), {"holding_period_days": 5}
+                    )
+                )
+            )
+            for _ in range(2)
+        ]
         [t.start() for t in threads]
         [t.join() for t in threads]
 
@@ -1348,7 +1486,9 @@ class TestSettlementOnceAndDurably:
 
         assert [e["date"] for e in log.get_pending_entries()] == ["2026-01-12"]
 
-    def test_a_price_request_that_fails_is_reported_not_taken_for_not_due(self, tmp_path, monkeypatch):
+    def test_a_price_request_that_fails_is_reported_not_taken_for_not_due(
+        self, tmp_path, monkeypatch
+    ):
         from tradingagents.dataflows.errors import VendorUnavailableError
 
         log = self._log(tmp_path, monkeypatch, "2026-01-05")

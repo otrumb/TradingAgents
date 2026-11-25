@@ -1,21 +1,19 @@
-"""The memory log: an append-only markdown record of each decision and, once settled, its outcome."""
+"""Decision journal storage with legacy Markdown context formatting."""
 
 import contextlib
-import re
 from pathlib import Path
 
 from tradingagents.agents.rating import parse_rating
 from tradingagents.dataflows.files import locked
+from tradingagents.dataflows.settlement_models import SettlementOutcome
+from tradingagents.memory import journal_records as codec
+from tradingagents.memory.journal_outcomes import OutcomeUpdate, outcome_document
 
 
 class TradingMemoryLog:
-    """Append-only markdown log of trading decisions and reflections."""
+    """Persist trading decisions and reflections in a versioned journal."""
 
-    # HTML comment: cannot appear in LLM prose output, safe as a hard delimiter
-    _SEPARATOR = "\n\n<!-- ENTRY_END -->\n\n"
-    # Precompiled patterns — avoids re-compilation on every load_entries() call
-    _DECISION_RE = re.compile(r"DECISION:\n(.*?)(?=\nREFLECTION:|\Z)", re.DOTALL)
-    _REFLECTION_RE = re.compile(r"REFLECTION:\n(.*?)$", re.DOTALL)
+    _SEPARATOR = codec.SEPARATOR
 
     def __init__(self, config: dict = None):
         cfg = config or {}
@@ -44,20 +42,14 @@ class TradingMemoryLog:
         if not self._log_path:
             return
         with locked(self._log_path):
-            # Idempotency guard: fast raw-text scan instead of full parse. Any entry
-            # for this ticker and date blocks another, pending or settled: a re-run
-            # after the outcome landed would otherwise count the same decision twice
-            # in past context and in every aggregate over the log.
-            if self._log_path.exists():
-                raw = self._log_path.read_text(encoding="utf-8")
-                for line in raw.splitlines():
-                    if line.startswith(f"[{trade_date} | {ticker} |") and line.endswith("]"):
-                        return
+            if any(e["date"] == trade_date and e["ticker"] == ticker for e in self.load_entries()):
+                return
             rating = rating or parse_rating(final_trade_decision)
-            tag = f"[{trade_date} | {ticker} | {rating} | pending]"
-            entry = f"{tag}\n\nDECISION:\n{final_trade_decision}{self._SEPARATOR}"
-            with open(self._log_path, "a", encoding="utf-8") as f:
-                f.write(entry)
+            entry = codec.encode(
+                codec.pending_document(trade_date, ticker, rating, final_trade_decision)
+            )
+            with self._log_path.open("ab") as file:
+                file.write(entry)
 
     def settling(self, wait: bool = True):
         """Hold the log for one settlement pass at a time, across threads and processes.
@@ -73,20 +65,17 @@ class TradingMemoryLog:
 
     # --- Read ---
 
-    def load_entries(self) -> list[dict]:
+    def load_entries(self) -> list[codec.Entry]:
         """Parse all entries from log. Returns list of dicts."""
         if not self._log_path or not self._log_path.exists():
             return []
-        text = self._log_path.read_text(encoding="utf-8")
-        raw_entries = [e.strip() for e in text.split(self._SEPARATOR) if e.strip()]
-        entries = []
-        for raw in raw_entries:
-            parsed = self._parse_entry(raw)
-            if parsed:
-                entries.append(parsed)
-        return entries
+        return [
+            record.entry
+            for record in codec.decode(self._log_path.read_bytes())
+            if record.entry is not None
+        ]
 
-    def get_pending_entries(self) -> list[dict]:
+    def get_pending_entries(self) -> list[codec.Entry]:
         """Return entries with outcome:pending, for settlement."""
         return [e for e in self.load_entries() if e.get("pending")]
 
@@ -143,203 +132,83 @@ class TradingMemoryLog:
         holding_days: int,
         reflection: str,
         resolution_date: str | None = None,
+        detailed_outcome: SettlementOutcome | None = None,
     ) -> bool:
-        """Replace pending tag and append REFLECTION section using atomic write.
+        """Resolve the first matching pending record using atomic replacement.
 
         Returns whether an entry was updated: False when the decision was no
         longer pending (another pass settled it first).
 
-        Finds the first pending entry matching (trade_date, ticker), updates
-        its tag with return figures (and the ``resolution_date`` the outcome
-        became known), and appends a REFLECTION section.  Uses a temp-file +
-        os.replace() so a crash mid-write never corrupts the log.
+        Stores exact returns and the date the outcome became known. Uses a
+        temp-file + os.replace() so a crash mid-write never corrupts the log.
         """
-        if not self._log_path or not self._log_path.exists():
-            return False
-        with locked(self._log_path):
-            text = self._log_path.read_text(encoding="utf-8")
-            blocks = text.split(self._SEPARATOR)
+        return self._update_outcomes(
+            [
+                {
+                    "ticker": ticker,
+                    "trade_date": trade_date,
+                    "raw_return": raw_return,
+                    "alpha_return": alpha_return,
+                    "holding_days": holding_days,
+                    "reflection": reflection,
+                    "resolution_date": resolution_date,
+                    "detailed_outcome": detailed_outcome,
+                }
+            ]
+        )
 
-            pending_prefix = f"[{trade_date} | {ticker} |"
-            raw_pct = f"{raw_return:+.1%}"
-            alpha_pct = f"{alpha_return:+.1%}"
-
-            updated = False
-            new_blocks = []
-            for block in blocks:
-                stripped = block.strip()
-                if not stripped:
-                    new_blocks.append(block)
-                    continue
-
-                lines = stripped.splitlines()
-                tag_line = lines[0].strip()
-
-                if (
-                    not updated
-                    and tag_line.startswith(pending_prefix)
-                    and tag_line.endswith("| pending]")
-                ):
-                    fields = [f.strip() for f in tag_line[1:-1].split("|")]
-                    rating = fields[2]
-                    new_tag = self._resolved_tag(
-                        trade_date, ticker, rating, raw_pct, alpha_pct, holding_days, resolution_date
-                    )
-                    rest = "\n".join(lines[1:])
-                    new_blocks.append(
-                        f"{new_tag}\n\n{rest.lstrip()}\n\nREFLECTION:\n{reflection}"
-                    )
-                    updated = True
-                else:
-                    new_blocks.append(block)
-
-            if not updated:
-                return False
-
-            new_blocks = self._apply_rotation(new_blocks)
-            new_text = self._SEPARATOR.join(new_blocks)
-            tmp_path = self._log_path.with_suffix(".tmp")
-            tmp_path.write_text(new_text, encoding="utf-8")
-            tmp_path.replace(self._log_path)
-            return True
-
-    def batch_update_with_outcomes(self, updates: list[dict]) -> None:
+    def batch_update_with_outcomes(self, updates: list[OutcomeUpdate]) -> None:
         """Apply multiple outcome updates in a single read + atomic write.
 
         Each element of updates must have keys: ticker, trade_date,
         raw_return, alpha_return, holding_days, reflection.
         """
+        self._update_outcomes(updates)
+
+    def _update_outcomes(self, updates: list[OutcomeUpdate]) -> bool:
         if not self._log_path or not self._log_path.exists() or not updates:
-            return
+            return False
         with locked(self._log_path):
-            text = self._log_path.read_text(encoding="utf-8")
-            blocks = text.split(self._SEPARATOR)
-
+            records = codec.decode(self._log_path.read_bytes())
             update_map = {(u["trade_date"], u["ticker"]): u for u in updates}
-
-            new_blocks = []
-            for block in blocks:
-                stripped = block.strip()
-                if not stripped:
-                    new_blocks.append(block)
+            updated = False
+            for index, record in enumerate(records):
+                entry = record.entry
+                if entry is None or not entry["pending"]:
                     continue
-
-                lines = stripped.splitlines()
-                tag_line = lines[0].strip()
-
-                matched = False
-                for (trade_date, ticker), upd in list(update_map.items()):
-                    pending_prefix = f"[{trade_date} | {ticker} |"
-                    if tag_line.startswith(pending_prefix) and tag_line.endswith("| pending]"):
-                        fields = [f.strip() for f in tag_line[1:-1].split("|")]
-                        rating = fields[2]
-                        raw_pct = f"{upd['raw_return']:+.1%}"
-                        alpha_pct = f"{upd['alpha_return']:+.1%}"
-                        new_tag = self._resolved_tag(
-                            trade_date, ticker, rating, raw_pct, alpha_pct,
-                            upd["holding_days"], upd.get("resolution_date"),
-                        )
-                        rest = "\n".join(lines[1:])
-                        new_blocks.append(
-                            f"{new_tag}\n\n{rest.lstrip()}\n\nREFLECTION:\n{upd['reflection']}"
-                        )
-                        del update_map[(trade_date, ticker)]
-                        matched = True
-                        break
-
-                if not matched:
-                    new_blocks.append(block)
-
-            new_blocks = self._apply_rotation(new_blocks)
-            new_text = self._SEPARATOR.join(new_blocks)
+                update = update_map.pop((entry["date"], entry["ticker"]), None)
+                if update is None:
+                    continue
+                outcome = outcome_document(update, entry["rating"])
+                if update.get("detailed_outcome") is not None:
+                    provenance = record.document.get("provenance") if record.document else None
+                    document = record.document or codec.pending_document(
+                        entry["date"], entry["ticker"], entry["rating"], entry["decision"]
+                    )
+                    record = codec.Record(
+                        record.raw,
+                        entry,
+                        {
+                            **document,
+                            "provenance": {
+                                **(provenance if isinstance(provenance, dict) else {}),
+                                "asset": outcome["asset"],
+                                "benchmark": outcome["benchmark"],
+                                "window": outcome["window"],
+                            },
+                        },
+                    )
+                records[index] = codec.decode(codec.resolve(record, outcome, update["reflection"]))[
+                    0
+                ]
+                updated = True
+            if not updated:
+                return False
+            content = b"".join(record.raw for record in codec.rotate(records, self._max_entries))
             tmp_path = self._log_path.with_suffix(".tmp")
-            tmp_path.write_text(new_text, encoding="utf-8")
+            tmp_path.write_bytes(content)
             tmp_path.replace(self._log_path)
-
-    # --- Helpers ---
-
-    @staticmethod
-    def _resolved_tag(
-        trade_date, ticker, rating, raw_pct, alpha_pct, holding_days, resolution_date
-    ) -> str:
-        """Build a resolved entry tag, recording the outcome's known-by date.
-
-        ``resolution_date`` (the date of the last price bar used for the return)
-        is the point-in-time cutoff a later run filters on (#1251). Omitted when
-        unavailable, keeping the legacy 6-field tag.
-        """
-        tag = f"[{trade_date} | {ticker} | {rating} | {raw_pct} | {alpha_pct} | {holding_days}d"
-        if resolution_date:
-            tag += f" | resolved:{resolution_date}"
-        return tag + "]"
-
-    def _apply_rotation(self, blocks: list[str]) -> list[str]:
-        """Drop the oldest-dated resolved blocks when their count exceeds max_entries.
-
-        Pending blocks are always kept (they represent unprocessed work).
-        Returns ``blocks`` unchanged when rotation is disabled or under cap.
-        """
-        if not self._max_entries or self._max_entries <= 0:
-            return blocks
-
-        # Tag each block with (block, is_resolved, decision date) from its tag line.
-        decisions = []
-        for block in blocks:
-            stripped = block.strip()
-            if not stripped:
-                decisions.append((block, False, ""))
-                continue
-            tag_line = stripped.splitlines()[0].strip()
-            is_resolved = (
-                tag_line.startswith("[")
-                and tag_line.endswith("]")
-                and not tag_line.endswith("| pending]")
-            )
-            decisions.append((block, is_resolved, tag_line[1:].split("|")[0].strip()))
-
-        resolved_count = sum(1 for _, r, _ in decisions if r)
-        if resolved_count <= self._max_entries:
-            return blocks
-
-        # The oldest by decision date, then by position: a backfill writes older
-        # decisions last.
-        resolved = [i for i, (_, is_resolved, _) in enumerate(decisions) if is_resolved]
-        dated = sorted(resolved, key=lambda i: (decisions[i][2], i))
-        dropped = set(dated[:resolved_count - self._max_entries])
-        return [block for i, (block, _, _) in enumerate(decisions) if i not in dropped]
-
-    def _parse_entry(self, raw: str) -> dict | None:
-        lines = raw.strip().splitlines()
-        if not lines:
-            return None
-        tag_line = lines[0].strip()
-        if not (tag_line.startswith("[") and tag_line.endswith("]")):
-            return None
-        fields = [f.strip() for f in tag_line[1:-1].split("|")]
-        if len(fields) < 4:
-            return None
-        # Optional trailing "resolved:YYYY-MM-DD" field records when the outcome
-        # became known, for point-in-time filtering (#1251).
-        resolved = None
-        for f in fields[6:]:
-            if f.startswith("resolved:"):
-                resolved = f[len("resolved:"):].strip()
-        entry = {
-            "date": fields[0],
-            "ticker": fields[1],
-            "rating": fields[2],
-            "pending": fields[3] == "pending",
-            "raw": fields[3] if fields[3] != "pending" else None,
-            "alpha": fields[4] if len(fields) > 4 else None,
-            "holding": fields[5] if len(fields) > 5 else None,
-            "resolved": resolved,
-        }
-        body = "\n".join(lines[1:]).strip()
-        decision_match = self._DECISION_RE.search(body)
-        reflection_match = self._REFLECTION_RE.search(body)
-        entry["decision"] = decision_match.group(1).strip() if decision_match else ""
-        entry["reflection"] = reflection_match.group(1).strip() if reflection_match else ""
-        return entry
+            return True
 
     def _format_full(self, e: dict) -> str:
         raw = e["raw"] or "n/a"
