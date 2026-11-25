@@ -14,6 +14,8 @@ from tradingagents.agents.rating import run_rating
 from tradingagents.dataflows.crypto_derivatives_models import DerivativesHistory
 from tradingagents.dataflows.crypto_models import CryptoContext
 from tradingagents.dataflows.crypto_spot_models import SpotPriceContext
+from tradingagents.dataflows.crypto_watch_models import WatchSnapshot
+from tradingagents.report_decision import decision_summary, observed_sources
 
 
 def analyst_names(keys) -> list[str]:
@@ -51,6 +53,9 @@ def _header(ticker: str, final_state: dict, settings: dict | None) -> str:
             lines.append("- Data vendors: " + ", ".join(f"{k} {v}" for k, v in vendors.items()))
     if final_state.get("memory_note"):
         lines.append(f"- Memory log: {final_state['memory_note']}")
+    observed = observed_sources(final_state)
+    if observed:
+        lines.append(f"- Observed evidence: {observed}")
     return "\n".join(lines) + "\n\n"
 
 
@@ -104,7 +109,12 @@ _SECTIONS = (
 
 def _report_parts(final_state: dict) -> list[tuple[str, str, list[tuple[str, str, str]]]]:
     """The sections with something to say: (heading, folder, [(agent, file, text)])."""
-    parts = []
+    summary = decision_summary(final_state)
+    parts = (
+        [("Decision Summary", "0_summary", [("Deterministic Decision", "decision.md", summary)])]
+        if summary
+        else []
+    )
     for heading, folder, agents in _SECTIONS:
         written = []
         for agent, filename, path in agents:
@@ -130,11 +140,13 @@ def write_report_tree(
     absent from this run and disabled HTML. Other files and directories are kept.
     """
     save_path = Path(save_path)
+    parts = _report_parts(final_state)
     save_path.mkdir(parents=True, exist_ok=True)
     for key, filename, model in (
         ("crypto_market_data", "crypto_spot.json", SpotPriceContext),
         ("crypto_context_data", "crypto_context.json", CryptoContext),
         ("crypto_derivatives_data", "crypto_derivatives.json", DerivativesHistory),
+        ("crypto_futures_watch_evidence", "crypto_futures_watch.json", WatchSnapshot),
     ):
         evidence_path = save_path / "evidence" / filename
         raw = final_state.get(key)
@@ -147,7 +159,6 @@ def write_report_tree(
             )
         else:
             evidence_path.unlink(missing_ok=True)
-    parts = _report_parts(final_state)
     sections = []
     for heading, folder, written in parts:
         (save_path / folder).mkdir(exist_ok=True)
@@ -179,4 +190,6 @@ def write_report_tree(
         for _agent, filename, _path in agents:
             if (folder, filename) not in current_files:
                 (save_path / folder / filename).unlink(missing_ok=True)
+    if not any(folder == "0_summary" for _heading, folder, _written in parts):
+        (save_path / "0_summary" / "decision.md").unlink(missing_ok=True)
     return save_path / "complete_report.md"

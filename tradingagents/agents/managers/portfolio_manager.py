@@ -16,8 +16,9 @@ from tradingagents.agents.context import (
     get_portfolio_context_from_state,
 )
 from tradingagents.agents.rating import parse_rating
-from tradingagents.agents.schemas import PortfolioDecision, render_pm_decision
+from tradingagents.agents.schemas import PortfolioDecision, PortfolioRating, render_pm_decision
 from tradingagents.agents.structured import NO_EXTERNAL_TOOLS, bind_structured, invoke_structured
+from tradingagents.spot_decision import SpotAllocation, derive_spot_action
 
 
 def create_portfolio_manager(llm):
@@ -97,10 +98,17 @@ Write these sections, in this order, starting with the rating on its own line:
             "count": risk_debate_state["count"],
         }
 
+        allocation_data = state.get("spot_allocation_data", "")
+        spot_action_data = ""
+        if allocation_data:
+            allocation = SpotAllocation.model_validate_json(allocation_data)
+            bias = "REVIEW" if final_rating == "REVIEW" else PortfolioRating(final_rating)
+            spot_action_data = derive_spot_action(allocation, bias).model_dump_json()
         return {
             "risk_debate_state": new_risk_debate_state,
             "final_trade_decision": final_trade_decision,
             "final_rating": final_rating,
+            "spot_action_data": spot_action_data,
         }
 
     return portfolio_manager_node

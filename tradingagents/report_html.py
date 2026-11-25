@@ -242,6 +242,11 @@ def _run_details(final_state: dict, settings: dict | None) -> list[tuple[str, st
         details.append(("Version", escape(f"TradingAgents {s('version', '?')}")))
     if final_state.get("memory_note"):
         details.append(("Memory log", escape(final_state["memory_note"])))
+    from tradingagents.report_decision import observed_sources
+
+    observed = observed_sources(final_state)
+    if observed:
+        details.append(("Observed evidence", escape(observed)))
     return details
 
 
