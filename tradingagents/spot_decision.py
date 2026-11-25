@@ -4,6 +4,8 @@ from decimal import Decimal
 from enum import StrEnum
 from typing import Literal, TypeAlias, assert_never
 
+from pydantic import Field
+
 from tradingagents.agents.schemas import PortfolioRating
 from tradingagents.dataflows.crypto_models import FrozenModel
 from tradingagents.dataflows.symbols import normalize_symbol
@@ -24,6 +26,7 @@ class SpotAllocation(FrozenModel):
 
     ticker: str
     held_quantity: Decimal | None
+    exit_on_sell: bool = Field(default=False, strict=True)
     current_exposure: Decimal | None = None
     current_weight: Decimal | None = None
     target_gap: Decimal | None = None
@@ -46,11 +49,12 @@ def calculate_spot_allocation(book: PortfolioContext | None, ticker: str) -> Spo
     if book is None:
         return SpotAllocation(ticker=symbol, held_quantity=None)
     sizing = calculate_sizing(book, symbol)
+    held = book.positions_in(symbol)
+    positive = [position for position in held if position.quantity > 0]
     return SpotAllocation(
         ticker=symbol,
-        held_quantity=sum(
-            (Decimal(str(p.quantity)) for p in book.positions_in(symbol)), Decimal(0)
-        ),
+        held_quantity=sum((Decimal(str(p.quantity)) for p in held), Decimal(0)),
+        exit_on_sell=bool(positive) and all(p.exit_on_sell for p in positive),
         current_exposure=sizing.current_exposure,
         current_weight=sizing.current_weight,
         target_gap=sizing.target_gap,
@@ -76,7 +80,7 @@ def derive_spot_action(allocation: SpotAllocation, market_bias: MarketBias) -> S
     if held is not None and held >= 0:
         match market_bias:
             case PortfolioRating.SELL:
-                if held > 0:
+                if held > 0 and allocation.exit_on_sell:
                     action, quantity = SpotAction.SELL, held
             case PortfolioRating.UNDERWEIGHT:
                 exposure, gap = allocation.current_exposure, allocation.target_gap

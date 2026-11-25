@@ -14,7 +14,9 @@ from tradingagents.spot_decision import (
 
 
 @pytest.mark.parametrize("bias", [PortfolioRating.SELL, PortfolioRating.UNDERWEIGHT])
-@pytest.mark.parametrize("positions", [(), (Position(ticker="BTCUSDT", quantity=0),)])
+@pytest.mark.parametrize(
+    "positions", [(), (Position(ticker="BTCUSDT", quantity=0, exit_on_sell=True),)]
+)
 def test_flat_or_absent_btc_never_sells(bias: MarketBias, positions: tuple[Position, ...]) -> None:
     book = PortfolioContext(positions=positions)
 
@@ -30,8 +32,8 @@ def test_flat_or_absent_btc_never_sells(bias: MarketBias, positions: tuple[Posit
 def test_sell_exits_all_held_eth_aliases_without_sizing_inputs() -> None:
     book = PortfolioContext(
         positions=(
-            Position(ticker="ETHUSDT", quantity=0.1),
-            Position(ticker="ETH-USD", quantity=0.2),
+            Position(ticker="ETHUSDT", quantity=0.1, exit_on_sell=True),
+            Position(ticker="ETH-USD", quantity=0.2, exit_on_sell=True),
             Position(ticker="BTC-USD", quantity=4),
         )
     )
@@ -41,6 +43,38 @@ def test_sell_exits_all_held_eth_aliases_without_sizing_inputs() -> None:
 
     assert (result.action, result.quantity) == (SpotAction.SELL, Decimal("0.3"))
     assert book.model_dump_json() == before
+
+
+@pytest.mark.parametrize(
+    "policies",
+    [({}, {}), ({"exit_on_sell": True}, {}), ({"exit_on_sell": True}, {"exit_on_sell": False})],
+)
+def test_sell_requires_every_positive_alias_to_authorize_exit(policies) -> None:
+    book = PortfolioContext(
+        positions=tuple(
+            Position(ticker=ticker, quantity=quantity, **policy)
+            for ticker, quantity, policy in zip(
+                ("ETHUSDT", "eth-usd"), (0.1, 0.2), policies, strict=True
+            )
+        )
+    )
+
+    result = calculate_spot_decision(book, "ETHUSD", PortfolioRating.SELL)
+
+    assert (result.action, result.quantity) == (SpotAction.NO_TRADE, Decimal(0))
+
+
+def test_zero_alias_does_not_veto_authorized_positive_holding() -> None:
+    book = PortfolioContext(
+        positions=(
+            Position(ticker="ETHUSDT", quantity=2, exit_on_sell=True),
+            Position(ticker="ETH-USD", quantity=0),
+        )
+    )
+
+    result = calculate_spot_decision(book, "ETHUSD", PortfolioRating.SELL)
+
+    assert (result.action, result.quantity) == (SpotAction.SELL, Decimal(2))
 
 
 @pytest.mark.parametrize("target, expected", [(0.2, "1"), (0.4, "0"), (0.6, "0"), (0, "2")])
@@ -78,7 +112,11 @@ def test_underweight_needs_target_mark_and_equity(position: Position, cash: floa
 def test_negative_holdings_never_produce_spot_trade(bias: MarketBias) -> None:
     book = PortfolioContext(
         cash=1000,
-        positions=(Position(ticker="ETHUSDT", quantity=-1, mark_price=200, target_weight=0),),
+        positions=(
+            Position(
+                ticker="ETHUSDT", quantity=-1, mark_price=200, target_weight=0, exit_on_sell=True
+            ),
+        ),
     )
 
     result = calculate_spot_decision(book, "ETH-USD", bias)

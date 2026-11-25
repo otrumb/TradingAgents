@@ -43,6 +43,9 @@ class Position(BaseModel):
     stop_price: float | None = Field(default=None, gt=0)
     horizon_days: int | None = Field(default=None, gt=0, strict=True)
     leverage: float | None = Field(default=None, ge=1)
+    exit_on_sell: bool = Field(
+        default=False, strict=True, description="Authorize full Spot exit on a final Sell rating"
+    )
 
 
 class PortfolioLimits(BaseModel):
@@ -132,7 +135,9 @@ class PortfolioContext(BaseModel):
         lines.extend(calculate_sizing(self, ticker).render())
         for position in held:
             inputs = position.model_dump(
-                exclude_none=True, exclude={"ticker", "quantity", "average_price"}
+                exclude_none=True,
+                exclude={"ticker", "quantity", "average_price"}
+                | ({"exit_on_sell"} if "exit_on_sell" not in position.model_fields_set else set()),
             )
             if inputs:
                 lines.append(
@@ -154,6 +159,7 @@ class PortfolioContext(BaseModel):
         excluded = {
             "positions": {
                 i: {name for name in new_fields if getattr(p, name) is None}
+                | ({"exit_on_sell"} if "exit_on_sell" not in p.model_fields_set else set())
                 for i, p in enumerate(self.positions)
             },
             **{
