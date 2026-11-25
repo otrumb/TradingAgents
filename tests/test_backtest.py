@@ -19,7 +19,11 @@ DECISION = "Rating: Buy\n\nbuy it"
 
 @pytest.mark.unit
 def test_grid_spacing_and_canonical_dates():
-    assert iter_grid("2026-01-05", "2026-01-20", every_n_days=7) == ["2026-01-05", "2026-01-12", "2026-01-19"]
+    assert iter_grid("2026-01-05", "2026-01-20", every_n_days=7) == [
+        "2026-01-05",
+        "2026-01-12",
+        "2026-01-19",
+    ]
 
 
 @pytest.mark.unit
@@ -73,8 +77,10 @@ def _fake_graph(monkeypatch, tmp_path):
 
 
 def _config(tmp_path):
-    return {"results_dir": str(tmp_path / "results"),
-            "memory_log_path": str(tmp_path / "live_trading_memory.md")}
+    return {
+        "results_dir": str(tmp_path / "results"),
+        "memory_log_path": str(tmp_path / "live_trading_memory.md"),
+    }
 
 
 @pytest.mark.unit
@@ -116,6 +122,7 @@ def test_a_failed_cell_does_not_abort_the_sweep(tmp_path):
 
 # --- reading the result ------------------------------------------------------
 
+
 def _log_with(tmp_path, rows):
     log = TradingMemoryLog({"memory_log_path": str(tmp_path / "m.md")})
     for ticker, date, decision, outcome in rows:
@@ -127,11 +134,14 @@ def _log_with(tmp_path, rows):
 
 @pytest.mark.unit
 def test_summary_scores_resolved_cells_and_keeps_pending_out_of_the_average(tmp_path):
-    log = _log_with(tmp_path, [
-        ("NVDA", "2026-01-05", "Rating: Buy\n\nx", (0.10, 0.04)),
-        ("NVDA", "2026-01-12", "Rating: Buy\n\nx", (-0.02, -0.02)),
-        ("AAPL", "2026-01-05", "Rating: Sell\n\nx", None),
-    ])
+    log = _log_with(
+        tmp_path,
+        [
+            ("NVDA", "2026-01-05", "Rating: Buy\n\nx", (0.10, 0.04)),
+            ("NVDA", "2026-01-12", "Rating: Buy\n\nx", (-0.02, -0.02)),
+            ("AAPL", "2026-01-05", "Rating: Sell\n\nx", None),
+        ],
+    )
 
     summary = summarize(log)
 
@@ -206,14 +216,38 @@ def test_a_failed_settlement_does_not_lose_the_remaining_tickers(tmp_path, monke
 def test_handled_settlement_failures_reach_the_backtest_result(tmp_path, monkeypatch, failure):
     from types import SimpleNamespace
 
+    from tradingagents.dataflows.settlement_models import SettlementLeg, SettlementOutcome
     from tradingagents.memory import settlement
 
     def returns(ticker, *args, **kwargs):
         if ticker == "AAPL":
-            return None, None, None, None  # an incomplete window is not a failure
+            return None  # an incomplete window is not a failure
         if failure == "prices":
             raise RuntimeError("vendor unavailable")
-        return 0.1, 0.02, 5, "2026-02-01"
+        return SettlementOutcome(
+            asset=SettlementLeg(
+                provider="yahoo",
+                symbol=ticker,
+                entry_date="2026-01-06",
+                exit_date="2026-02-01",
+                entry_price=100.0,
+                exit_price=110.0,
+            ),
+            benchmark=SettlementLeg(
+                provider="yahoo",
+                symbol="SPY",
+                entry_date="2026-01-06",
+                exit_date="2026-02-01",
+                entry_price=100.0,
+                exit_price=108.0,
+            ),
+            benchmark_label="SPY",
+            window_kind="trading_sessions",
+            window_count=5,
+            raw_return=0.1,
+            benchmark_return=0.08,
+            alpha_return=0.1 - 0.08,
+        )
 
     def reflect(**kwargs):
         raise RuntimeError("reflector timed out")
@@ -221,17 +255,25 @@ def test_handled_settlement_failures_reach_the_backtest_result(tmp_path, monkeyp
     def settle(self, ticker):
         self.settled.append(ticker)
         return settlement.settle_pending(
-            ticker, self.memory_log, SimpleNamespace(reflect_on_final_decision=reflect), self.config,
+            ticker,
+            self.memory_log,
+            SimpleNamespace(reflect_on_final_decision=reflect),
+            self.config,
         )
 
-    monkeypatch.setattr(settlement, "fetch_returns", returns)
+    monkeypatch.setattr(settlement, "fetch_outcome", returns)
     monkeypatch.setattr(_FakeGraph, "settle_pending", settle)
     result = run_backtest(
-        ["NVDA", "AAPL"], ["2026-01-05", "2026-01-12"], _config(tmp_path),
+        ["NVDA", "AAPL"],
+        ["2026-01-05", "2026-01-12"],
+        _config(tmp_path),
     )
 
-    reason = ("prices unavailable: vendor unavailable" if failure == "prices"
-              else "reflection failed: reflector timed out")
+    reason = (
+        "prices unavailable: vendor unavailable"
+        if failure == "prices"
+        else "reflection failed: reflector timed out"
+    )
     assert result.settlement_failures == [
         ("NVDA", f"2026-01-05: {reason}"),
         ("NVDA", f"2026-01-12: {reason}"),
@@ -245,10 +287,16 @@ def test_handled_settlement_failures_reach_the_backtest_result(tmp_path, monkeyp
 def test_pending_note_appears_only_when_something_is_pending(tmp_path):
     settled = [("NVDA", "2026-01-05", DECISION, (0.1, 0.05))]
     assert "Pending" not in summarize(_log_with(tmp_path, settled)).render()
-    assert "Pending" in summarize(_log_with(tmp_path, settled + [("AAPL", "2026-01-05", DECISION, None)])).render()
+    assert (
+        "Pending"
+        in summarize(
+            _log_with(tmp_path, settled + [("AAPL", "2026-01-05", DECISION, None)])
+        ).render()
+    )
 
 
 # --- scoring reads the direction the rating claimed ---------------------------
+
 
 def _scored(tmp_path, rows):
     log = _log_with(tmp_path, rows)
@@ -259,10 +307,13 @@ def _scored(tmp_path, rows):
 def test_a_bearish_call_that_fell_counts_as_right(tmp_path):
     """Alpha below the benchmark is the outcome a Sell predicted; scoring it as
     a miss reported the system as wrong exactly when it was right."""
-    scores = _scored(tmp_path, [
-        ("NVDA", "2026-01-05", "**Rating**: Sell\n\nx", (-0.08, -0.05)),
-        ("AAPL", "2026-01-05", "**Rating**: Underweight\n\nx", (-0.03, -0.02)),
-    ])
+    scores = _scored(
+        tmp_path,
+        [
+            ("NVDA", "2026-01-05", "**Rating**: Sell\n\nx", (-0.08, -0.05)),
+            ("AAPL", "2026-01-05", "**Rating**: Underweight\n\nx", (-0.03, -0.02)),
+        ],
+    )
     assert scores["Sell"].hit_rate == 1.0
     assert scores["Underweight"].hit_rate == 1.0
 
@@ -275,10 +326,13 @@ def test_a_bearish_call_that_rose_counts_as_wrong(tmp_path):
 
 @pytest.mark.unit
 def test_a_bullish_call_is_scored_the_same_way_as_before(tmp_path):
-    scores = _scored(tmp_path, [
-        ("NVDA", "2026-01-05", "**Rating**: Buy\n\nx", (0.10, 0.04)),
-        ("AAPL", "2026-01-05", "**Rating**: Buy\n\nx", (-0.02, -0.02)),
-    ])
+    scores = _scored(
+        tmp_path,
+        [
+            ("NVDA", "2026-01-05", "**Rating**: Buy\n\nx", (0.10, 0.04)),
+            ("AAPL", "2026-01-05", "**Rating**: Buy\n\nx", (-0.02, -0.02)),
+        ],
+    )
     assert scores["Buy"].hit_rate == 0.5
 
 
@@ -291,8 +345,9 @@ def test_hold_claims_no_direction_so_it_gets_no_hit_rate(tmp_path):
 
 @pytest.mark.unit
 def test_the_report_names_the_window_the_scores_cover(tmp_path):
-    text = summarize(_log_with(tmp_path, [
-        ("NVDA", "2026-01-05", "**Rating**: Buy\n\nx", (0.1, 0.05))])).render()
+    text = summarize(
+        _log_with(tmp_path, [("NVDA", "2026-01-05", "**Rating**: Buy\n\nx", (0.1, 0.05))])
+    ).render()
     assert "5" in text and "day" in text.lower()
     assert "Hold" not in text or "no direction" in text.lower()
 
@@ -340,11 +395,19 @@ def test_a_result_whose_cells_all_failed_summarizes_as_empty(tmp_path):
 def test_progress_is_reported_before_each_cell(tmp_path):
     seen = []
 
-    run_backtest(["NVDA", "AAPL"], ["2026-01-05", "2026-01-12"], _config(tmp_path),
-                 progress=lambda done, total, ticker, date: seen.append((done, total, ticker, date)))
+    run_backtest(
+        ["NVDA", "AAPL"],
+        ["2026-01-05", "2026-01-12"],
+        _config(tmp_path),
+        progress=lambda done, total, ticker, date: seen.append((done, total, ticker, date)),
+    )
 
-    assert seen == [(1, 4, "NVDA", "2026-01-05"), (2, 4, "NVDA", "2026-01-12"),
-                    (3, 4, "AAPL", "2026-01-05"), (4, 4, "AAPL", "2026-01-12")]
+    assert seen == [
+        (1, 4, "NVDA", "2026-01-05"),
+        (2, 4, "NVDA", "2026-01-12"),
+        (3, 4, "AAPL", "2026-01-05"),
+        (4, 4, "AAPL", "2026-01-12"),
+    ]
 
 
 @pytest.mark.unit
@@ -352,8 +415,13 @@ def test_a_resumed_sweep_reports_only_the_cells_it_runs(tmp_path):
     first = run_backtest(["NVDA"], ["2026-01-05"], _config(tmp_path))
     seen = []
 
-    run_backtest(["NVDA"], ["2026-01-05", "2026-01-12"], _config(tmp_path), run_id=first.run_id,
-                 progress=lambda done, total, ticker, date: seen.append((done, total, date)))
+    run_backtest(
+        ["NVDA"],
+        ["2026-01-05", "2026-01-12"],
+        _config(tmp_path),
+        run_id=first.run_id,
+        progress=lambda done, total, ticker, date: seen.append((done, total, date)),
+    )
 
     assert seen == [(1, 1, "2026-01-12")]
 

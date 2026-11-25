@@ -23,7 +23,13 @@ from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from pathlib import Path
 
-from tradingagents.agents.rating import RATING_REVIEW, action_adjusted_return
+from tradingagents.backtest_summary import (
+    BacktestSummary as BacktestSummary,
+    OutcomeGroup as OutcomeGroup,
+    RatingScore as RatingScore,
+    _alpha as _alpha,
+    summarize_entries,
+)
 from tradingagents.dataflows.date_window import get_current_date
 from tradingagents.dataflows.symbols import safe_ticker_component
 from tradingagents.graph.trading_graph import TradingAgentsGraph
@@ -63,19 +69,6 @@ def _canonical(date: str) -> datetime:
     return parsed
 
 
-def _alpha(entry: dict) -> float | None:
-    """Alpha return of a settled entry, or None when it has not settled.
-
-    The log stores it as a percentage rounded to one decimal, so aggregates here
-    are accurate to 0.1 of a percentage point, not to the raw quote.
-    """
-    text = (entry.get("alpha") or "").strip().rstrip("%")
-    try:
-        return float(text) / 100
-    except ValueError:
-        return None
-
-
 @dataclass
 class BacktestResult:
     run_id: str
@@ -84,47 +77,6 @@ class BacktestResult:
     skipped: int = 0
     failures: list[tuple[str, str, str]] = field(default_factory=list)
     settlement_failures: list[tuple[str, str]] = field(default_factory=list)
-
-
-@dataclass
-class RatingScore:
-    count: int
-    hit_rate: float | None
-    mean_alpha: float
-
-
-@dataclass
-class BacktestSummary:
-    resolved: int
-    pending: int
-    by_rating: dict[str, RatingScore]
-    unscored: int = 0
-    holding: str = ""
-
-    def render(self) -> str:
-        lines = [
-            f"Resolved cells: {self.resolved} · pending: {self.pending}"
-            + (f" · unscored: {self.unscored}" if self.unscored else "")
-        ]
-        for rating, score in self.by_rating.items():
-            called = (
-                f"called the direction {score.hit_rate:.0%}"
-                if score.hit_rate is not None
-                else "no direction claimed"
-            )
-            lines.append(
-                f"- {rating}: n={score.count}, {called}, "
-                f"mean alpha {score.mean_alpha:+.2%} vs the benchmark"
-            )
-        lines.append("")
-        if self.pending:
-            lines.append("Pending cells are not scored above; re-run to settle them.")
-        lines.append(
-            f"Alpha is measured over {self.holding} from the first close after each analysis date. "
-            "One model sampling per cell, and text feeds are not archived, so "
-            "these figures are indicative rather than repeatable."
-        )
-        return "\n".join(lines)
 
 
 def _new_run(runs: Path) -> str:
@@ -215,34 +167,4 @@ def summarize(source: BacktestResult | str | Path) -> BacktestSummary:
     else:
         raise FileNotFoundError(f"no memory log at {source}")
     entries = TradingMemoryLog({"memory_log_path": str(path)}).load_entries()
-    # A decision with no readable rating has no direction, so it can neither
-    # count for nor against the system; it is reported as unscored instead.
-    resolved = [
-        (e, _alpha(e)) for e in entries if not e["pending"] and e["rating"] != RATING_REVIEW
-    ]
-    resolved = [(e, a) for e, a in resolved if a is not None]
-    by_rating: dict[str, RatingScore] = {}
-    for rating in dict.fromkeys(e["rating"] for e, _ in resolved):
-        alphas = [a for e, a in resolved if e["rating"] == rating]
-        adjusted = [
-            value for a in alphas if (value := action_adjusted_return(rating, a)) is not None
-        ]
-        by_rating[rating] = RatingScore(
-            count=len(alphas),
-            hit_rate=(sum(a > 0 for a in adjusted) / len(adjusted)) if adjusted else None,
-            mean_alpha=sum(alphas) / len(alphas),
-        )
-    unscored = sum(1 for e in entries if e["rating"] == RATING_REVIEW)
-    # Report the window the outcomes were actually measured over, from the log.
-    windows = {
-        f"{e['holding'][:-1]} trading days"
-        for e, _ in resolved
-        if (e.get("holding") or "").endswith("d")
-    }
-    return BacktestSummary(
-        resolved=len(resolved),
-        pending=len(entries) - len(resolved) - unscored,
-        by_rating=by_rating,
-        unscored=unscored,
-        holding=", ".join(sorted(windows)) or "the configured window",
-    )
+    return summarize_entries(entries)
