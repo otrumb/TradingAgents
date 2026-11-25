@@ -7,7 +7,8 @@ from datetime import datetime, timedelta
 
 import pandas as pd
 
-from tradingagents.dataflows.crypto_settlement import fetch_crypto_returns
+from tradingagents.dataflows.crypto_settlement import fetch_crypto_outcome
+from tradingagents.dataflows.settlement_models import SettlementLeg, SettlementOutcome
 from tradingagents.dataflows.symbols import crypto_base, normalize_symbol
 from tradingagents.dataflows.vendors.yahoo.market import get_closes
 
@@ -61,12 +62,12 @@ def _by_day(closes):
     return closes if tz is None else closes.tz_localize(None)
 
 
-def fetch_returns(
+def fetch_outcome(
     ticker: str,
     trade_date: str,
     holding_days: int = 5,
     benchmark: str = "SPY",
-) -> tuple[float | None, float | None, int | None, str | None]:
+) -> SettlementOutcome | None:
     """Fetch raw and alpha return for ticker over holding_days after trade_date.
 
     The position is entered at the first close after ``trade_date``: a run dated
@@ -86,7 +87,7 @@ def fetch_returns(
     # and before today, with a day's slack for markets east of UTC: until then
     # the window cannot have traded and no prices are asked for.
     if (today - start).days < holding_days + 1:
-        return None, None, None, None
+        return None
     # holding_days counts trading days after the entry session, so ask for the
     # calendar span they occupy (about 7 for every 5) plus a week for holidays.
     end = start + timedelta(days=round((holding_days + 1) * 7 / 5) + 7)
@@ -118,14 +119,14 @@ def fetch_returns(
     # leaves the entry pending to retry next run, rather than settling on a
     # premature partial return (#1169).
     if len(stock) <= holding_days:
-        return None, None, None, None
+        return None
     entry, exit_ = stock.index[0], stock.index[holding_days]
     # The window is the stock's own sessions; the benchmark is valued at its
     # last close by each end, so both returns span the same dates even when
     # the calendars differ (a coin trades at weekends, an index does not).
     # It must have traded through the exit, or its close there may yet move.
     if bench.empty or bench.index[0] > entry or bench.index[-1] < exit_:
-        return None, None, None, None
+        return None
 
     raw = float((stock.iloc[holding_days] - stock.iloc[0]) / stock.iloc[0])
     bench_entry, bench_exit = bench.asof(entry), bench.asof(exit_)
@@ -133,8 +134,43 @@ def fetch_returns(
     alpha = raw - bench_ret
     # Every close used is known by the exit: the point-in-time cutoff for
     # injecting the lesson (#1251).
-    resolution_date = exit_.strftime("%Y-%m-%d")
-    return raw, alpha, holding_days, resolution_date
+    bench_entry_date = bench.index[bench.index <= entry][-1]
+    bench_exit_date = bench.index[bench.index <= exit_][-1]
+    return SettlementOutcome(
+        asset=SettlementLeg(
+            provider="yahoo",
+            symbol=normalize_symbol(ticker),
+            entry_date=entry.strftime("%Y-%m-%d"),
+            exit_date=exit_.strftime("%Y-%m-%d"),
+            entry_price=float(stock.iloc[0]),
+            exit_price=float(stock.iloc[holding_days]),
+        ),
+        benchmark=SettlementLeg(
+            provider="yahoo",
+            symbol=normalize_symbol(benchmark),
+            entry_date=bench_entry_date.strftime("%Y-%m-%d"),
+            exit_date=bench_exit_date.strftime("%Y-%m-%d"),
+            entry_price=float(bench_entry),
+            exit_price=float(bench_exit),
+        ),
+        benchmark_label=normalize_symbol(benchmark),
+        window_kind="trading_sessions",
+        window_count=holding_days,
+        raw_return=raw,
+        benchmark_return=bench_ret,
+        alpha_return=alpha,
+    )
+
+
+def fetch_returns(
+    ticker: str,
+    trade_date: str,
+    holding_days: int = 5,
+    benchmark: str = "SPY",
+) -> tuple[float | None, float | None, int | None, str | None]:
+    """Compatible tuple view of the detailed Yahoo outcome."""
+    outcome = fetch_outcome(ticker, trade_date, holding_days, benchmark)
+    return (None, None, None, None) if outcome is None else outcome.legacy_tuple()
 
 
 @dataclass
@@ -168,13 +204,13 @@ def settle_pending(
         for entry in pending:
             try:
                 if crypto_base(ticker) in {"BTC", "ETH", "SOL"}:
-                    raw, alpha, days, resolution_date = fetch_crypto_returns(
+                    outcome = fetch_crypto_outcome(
                         ticker,
                         entry["date"],
                         config.get("crypto_holding_period_days", 7),
                     )
                 else:
-                    raw, alpha, days, resolution_date = fetch_returns(
+                    outcome = fetch_outcome(
                         ticker,
                         entry["date"],
                         config.get("holding_period_days", 5),
@@ -186,15 +222,16 @@ def settle_pending(
                 )
                 result.failed.append((ticker, entry["date"], f"prices unavailable: {exc}"))
                 continue
-            if raw is None:
+            if outcome is None:
                 continue  # the holding window has not traded yet: try again next run
+            raw, alpha, days, resolution_date = outcome.legacy_tuple()
             try:
                 reflection = reflector.reflect_on_final_decision(
                     final_decision=entry.get("decision", ""),
                     rating=entry["rating"],
                     raw_return=raw,
                     alpha_return=alpha,
-                    benchmark_name=benchmark,
+                    benchmark_name=outcome.benchmark_label,
                     holding_days=days,
                 )
             except Exception as exc:
@@ -204,7 +241,14 @@ def settle_pending(
                 result.failed.append((ticker, entry["date"], f"reflection failed: {exc}"))
                 continue
             if memory_log.update_with_outcome(
-                ticker, entry["date"], raw, alpha, days, reflection, resolution_date=resolution_date
+                ticker,
+                entry["date"],
+                raw,
+                alpha,
+                days,
+                reflection,
+                resolution_date=resolution_date,
+                detailed_outcome=outcome,
             ):
                 result.settled.append((ticker, entry["date"]))
     return result

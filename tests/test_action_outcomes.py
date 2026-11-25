@@ -5,6 +5,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
+from tests.settlement_fixtures import outcome
 from tradingagents.agents.rating import action_adjusted_return, parse_rating
 from tradingagents.backtest import summarize
 from tradingagents.memory import TradingMemoryLog, settlement
@@ -64,13 +65,8 @@ def test_settlement_reflection_scores_stored_rating_and_keeps_factual_memory(
     llm.invoke.return_value = SimpleNamespace(content="lesson")
     monkeypatch.setattr(
         settlement,
-        "fetch_returns",
-        lambda *a, **kw: (
-            raw,
-            alpha,
-            5,
-            "2026-02-01",
-        ),
+        "fetch_outcome",
+        lambda *a, **kw: outcome(raw, alpha, 5, "2026-02-01"),
     )
 
     result = settlement.settle_pending("NVDA", log, Reflector(llm), {})

@@ -4,6 +4,7 @@ import pandas as pd
 import pytest
 from pydantic import ValidationError
 
+from tests.settlement_fixtures import outcome
 from tradingagents.dataflows.crypto_settlement import SettlementRequest
 from tradingagents.memory import TradingMemoryLog, settlement
 
@@ -32,9 +33,9 @@ def test_pending_uses_asset_specific_holding_period(
 ):
     def crypto_returns(ticker, trade_date, holding_days):
         assert holding_days == expected_days
-        return 0.1, 0.1, holding_days, "2026-01-10"
+        return outcome(0.1, 0.1, holding_days, "2026-01-10")
 
-    monkeypatch.setattr(settlement, "fetch_crypto_returns", crypto_returns)
+    monkeypatch.setattr(settlement, "fetch_crypto_outcome", crypto_returns)
     days = pd.bdate_range("2026-01-02", periods=7)
     prices = pd.Series(range(100, 107), index=days)
     monkeypatch.setattr(settlement, "get_closes", lambda *args: prices)
