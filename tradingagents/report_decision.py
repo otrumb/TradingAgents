@@ -5,6 +5,7 @@ from tradingagents.dataflows.crypto_models import ContextContractError
 from tradingagents.dataflows.crypto_spot_models import SpotPriceContext
 from tradingagents.dataflows.crypto_watch_evaluator import evaluate_watch
 from tradingagents.dataflows.crypto_watch_models import WatchDecision, WatchSnapshot
+from tradingagents.dataflows.crypto_watch_report import render_watch_details
 from tradingagents.dataflows.symbols import crypto_base, normalize_symbol
 from tradingagents.spot_decision import SpotAllocation, SpotDecision, derive_spot_action
 
@@ -71,6 +72,7 @@ def decision_summary(state: dict) -> str:
         lines.append("- Watch status (1d/4h/1h): " + "/".join(watch.statuses))
         if watch.reasons:
             lines.append("- Watch reasons: " + ", ".join(watch.reasons))
+        lines.append(render_watch_details(watch))
     else:
         lines.append("- Futures Watch 1d/4h/1h: unavailable")
     observed = observed_sources(state)

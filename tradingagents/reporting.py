@@ -14,7 +14,7 @@ from tradingagents.agents.rating import run_rating
 from tradingagents.dataflows.crypto_derivatives_models import DerivativesHistory
 from tradingagents.dataflows.crypto_models import CryptoContext
 from tradingagents.dataflows.crypto_spot_models import SpotPriceContext
-from tradingagents.dataflows.crypto_watch_models import WatchSnapshot
+from tradingagents.dataflows.crypto_watch_models import WatchDecision, WatchSnapshot
 from tradingagents.report_decision import decision_summary, observed_sources
 
 
@@ -147,6 +147,7 @@ def write_report_tree(
         ("crypto_context_data", "crypto_context.json", CryptoContext),
         ("crypto_derivatives_data", "crypto_derivatives.json", DerivativesHistory),
         ("crypto_futures_watch_evidence", "crypto_futures_watch.json", WatchSnapshot),
+        ("crypto_futures_watch_data", "crypto_futures_watch_decision.json", WatchDecision),
     ):
         evidence_path = save_path / "evidence" / filename
         raw = final_state.get(key)

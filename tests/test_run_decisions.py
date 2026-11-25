@@ -35,7 +35,7 @@ def snapshot(asset="BTC", cutoff=CUTOFF):
 def state_for(ticker="BTC-USD", held=0):
     state = Propagator().create_initial_state(ticker, "2024-01-02", "crypto")
     state.update(investment_plan="research", trader_investment_plan="trader")
-    book = PortfolioContext(positions=(Position(ticker=ticker, quantity=held),))
+    book = PortfolioContext(positions=(Position(ticker=ticker, quantity=held, exit_on_sell=True),))
     state["spot_allocation_data"] = calculate_spot_allocation(book, ticker).model_dump_json()
     watch = snapshot(ticker.split("-")[0])
     state["crypto_futures_watch_evidence"] = watch.model_dump_json()
