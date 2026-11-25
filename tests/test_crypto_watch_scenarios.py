@@ -19,13 +19,19 @@ from tradingagents.dataflows.crypto_watch_models import (
     WatchSeries,
     WatchSnapshot,
 )
-from tradingagents.dataflows.crypto_watch_scenario_models import HypotheticalPlan, WatchCosts
+from tradingagents.dataflows.crypto_watch_report import render_hypothetical_outcome
+from tradingagents.dataflows.crypto_watch_scenario_models import (
+    HypotheticalOutcome,
+    HypotheticalPlan,
+    WatchCosts,
+)
 
 
 def plan(direction="long", **changes):
     return HypotheticalPlan(
         direction=direction,
         decision_as_of=CUTOFF,
+        observable_at=CUTOFF,
         invalidation=Decimal(90 if direction == "long" else 110),
         swing_start=CUTOFF - timedelta(hours=16),
         swing_end=CUTOFF - timedelta(hours=4, milliseconds=1),
@@ -124,8 +130,32 @@ def test_explicit_decimal_costs_debit_both_directions(direction, close, gross):
         plan(direction, costs=costs), future(168, **prices), CUTOFF + timedelta(hours=168)
     )
     assert outcome.gross_return == Decimal(gross)
+    assert outcome.fee_slippage_return == Decimal("0.008")
+    assert outcome.funding_return == Decimal("0.084")
     assert outcome.cost_return == Decimal("0.092")
     assert outcome.net_return == Decimal("0.108")
+
+
+def test_completed_outcome_report_renders_each_cost_component():
+    outcome = HypotheticalOutcome(
+        status="stopped",
+        reason="invalidation",
+        evaluated_as_of=CUTOFF + timedelta(hours=2),
+        entry_bar=CUTOFF,
+        entry_price=Decimal("100"),
+        outcome_bar=CUTOFF + timedelta(hours=1),
+        exit_price=Decimal("110"),
+        closed_holding_bars=1,
+        gross_return=Decimal("0.1"),
+        fee_slippage_return=Decimal("0.008"),
+        funding_return=Decimal("0.004"),
+        cost_return=Decimal("0.012"),
+        net_return=Decimal("0.088"),
+    )
+
+    report = render_hypothetical_outcome(outcome)
+
+    assert "gross=0.1; fee+slippage=0.008; funding=0.004; total cost=0.012; net=0.088" in report
 
 
 @pytest.mark.parametrize("direction", [1, -1])
@@ -163,11 +193,13 @@ def test_history_filters_future_signals_but_uses_future_outcomes(watch_wire):
         symbol="BTCUSDT",
         as_of=CUTOFF + timedelta(hours=1),
         cutoff=CUTOFF + timedelta(hours=1),
+        observable_at=CUTOFF + timedelta(hours=1),
         server_time=None,
         series=series,
     )
     (result,) = evaluate_watch_history(archive, (CUTOFF,))
     assert result.decision == evaluate_watch(snapshot)
+    assert result.decision.observable_at == result.decision.hypothetical.observable_at == CUTOFF
     assert result.hypothetical_outcome.entry_price == Decimal(100)
     assert result.hypothetical_outcome.status == "pending_outcome"
 

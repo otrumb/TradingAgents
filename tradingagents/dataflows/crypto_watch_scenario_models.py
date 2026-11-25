@@ -1,6 +1,6 @@
 """Canonical hypothetical watch-only scenario and cost provenance; never orders."""
 
-from decimal import Decimal
+from decimal import Context, Decimal, localcontext
 from typing import Annotated, Literal, Self, assert_never
 
 from pydantic import AwareDatetime, Field, model_validator
@@ -30,9 +30,10 @@ class HypotheticalPlan(FrozenModel):
     status: Literal["pending_entry"] = "pending_entry"
     direction: Literal["long", "short"]
     decision_as_of: AwareDatetime
-    entry_rule: Literal["next finalized 1h candle open at or after decision_as_of"] = (
-        "next finalized 1h candle open at or after decision_as_of"
-    )
+    observable_at: AwareDatetime
+    entry_rule: Literal[
+        "next finalized 1h candle open at or after ceiling(observable_at to hour)"
+    ] = "next finalized 1h candle open at or after ceiling(observable_at to hour)"
     invalidation: PositivePrice
     swing_start: AwareDatetime
     swing_end: AwareDatetime
@@ -51,6 +52,8 @@ class HypotheticalPlan(FrozenModel):
     def causal_swing(self) -> Self:
         if not self.swing_start <= self.swing_end < self.confirmed_at < self.decision_as_of:
             raise ContextContractError(field="hypothetical swing provenance")
+        if self.decision_as_of > self.observable_at:
+            raise ContextContractError(field="hypothetical observable order")
         return self
 
 
@@ -64,9 +67,11 @@ class HypotheticalOutcome(FrozenModel):
     outcome_bar: AwareDatetime | None = None
     exit_price: PositivePrice | None = None
     closed_holding_bars: Annotated[int, Field(ge=0, le=168)] = 0
-    gross_return: Decimal | None = None
-    cost_return: Decimal | None = None
-    net_return: Decimal | None = None
+    gross_return: Annotated[Decimal, Field(allow_inf_nan=False)] | None = None
+    fee_slippage_return: Annotated[Decimal, Field(ge=0, allow_inf_nan=False)] | None = None
+    funding_return: Annotated[Decimal, Field(ge=0, allow_inf_nan=False)] | None = None
+    cost_return: Annotated[Decimal, Field(ge=0, allow_inf_nan=False)] | None = None
+    net_return: Annotated[Decimal, Field(allow_inf_nan=False)] | None = None
 
     @model_validator(mode="after")
     def coherent_outcome(self) -> Self:
@@ -77,6 +82,8 @@ class HypotheticalOutcome(FrozenModel):
                 self.outcome_bar,
                 self.exit_price,
                 self.gross_return,
+                self.fee_slippage_return,
+                self.funding_return,
                 self.cost_return,
                 self.net_return,
             )
@@ -104,9 +111,26 @@ class HypotheticalOutcome(FrozenModel):
                 self.outcome_bar,
                 self.exit_price,
                 self.gross_return,
+                self.fee_slippage_return,
+                self.funding_return,
                 self.cost_return,
                 self.net_return,
             )
         ):
             raise ContextContractError(field="hypothetical pending returns")
+        if (
+            self.entry_bar is not None
+            and self.outcome_bar is not None
+            and not self.entry_bar <= self.outcome_bar < self.evaluated_as_of
+        ):
+            raise ContextContractError(field="hypothetical outcome interval")
+        if (
+            self.gross_return is not None
+            and self.fee_slippage_return is not None
+            and self.funding_return is not None
+        ):
+            with localcontext(Context(prec=28)):
+                cost = self.fee_slippage_return + self.funding_return
+                if self.cost_return != cost or self.net_return != self.gross_return - cost:
+                    raise ContextContractError(field="hypothetical outcome cost/net invariant")
         return self
