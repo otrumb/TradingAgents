@@ -106,7 +106,12 @@ def test_aggregate_counts_and_exact_completed_decimal_means(watch_wire):
         evaluate_hypothetical(plan, future(168), CUTOFF + timedelta(hours=168)),
     )
     wait = WatchDecision(
-        asset="BTC", symbol="BTCUSDT", as_of=CUTOFF, cutoff=CUTOFF, reasons=("unavailable",)
+        asset="BTC",
+        symbol="BTCUSDT",
+        as_of=CUTOFF,
+        cutoff=CUTOFF,
+        observable_at=CUTOFF,
+        reasons=("unavailable",),
     )
     results = (HistoricalWatchResult(decision=wait, hypothetical_outcome=None),) + tuple(
         HistoricalWatchResult(decision=decision, hypothetical_outcome=o) for o in outcomes
@@ -126,6 +131,8 @@ def test_aggregate_counts_and_exact_completed_decimal_means(watch_wire):
         summary.completed_count,
     ) == (5, 4, 1, 1, 1, 1, 2)
     assert summary.mean_gross_return == Decimal("-0.485")
+    assert summary.mean_fee_slippage_return == Decimal("0.002")
+    assert summary.mean_funding_return == Decimal("0.00105625")
     assert summary.mean_cost_return == Decimal("0.00305625")
     assert summary.mean_net_return == Decimal("-0.48805625")
     assert HistoricalWatchAggregate.model_validate_json(summary.model_dump_json()) == summary
@@ -137,11 +144,18 @@ def test_zero_completed_has_no_return_means_or_performance_claim(watch_wire, pen
     results = ()
     if pending:
         decision = evaluate_watch(collect_watch(WatchRequest(asset="BTC", timeout_seconds=7)))
-        outcome = evaluate_hypothetical(decision.hypothetical, future(0), CUTOFF)
+        outcome = evaluate_hypothetical(decision.hypothetical, future(0), decision.observable_at)
         results = (HistoricalWatchResult(decision=decision, hypothetical_outcome=outcome),)
     summary = aggregate_watch_history(results)
     assert summary.completed_count == 0
     assert summary.mean_gross_return is summary.mean_cost_return is summary.mean_net_return is None
+    assert summary.mean_fee_slippage_return is summary.mean_funding_return is None
+    assert (
+        summary.overlapping_pair_count,
+        summary.overlap_pair_fraction,
+        summary.peak_concurrent,
+        summary.non_overlapping_count,
+    ) == (0, Decimal(0), 0, 0)
     assert "no performance claim" in render_watch_aggregate(summary)
 
 
