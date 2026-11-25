@@ -7,6 +7,7 @@ from rich.markup import escape
 
 from cli.analyst_selection import DEFAULT_ANALYSTS
 from cli.display import console
+from cli.journal_audit import journal_audit
 from cli.models import AssetType
 from cli.prompts import filter_analysts_for_asset_type, parse_analysts
 from cli.run import run_analysis
@@ -32,7 +33,9 @@ app = typer.Typer(
     help="TradingAgents CLI: Multi-Agents LLM Financial Trading Framework",
     add_completion=True,  # Enable shell completion
 )
+app.command("journal-audit")(journal_audit)
 
+# fmt: off
 
 @app.callback(invoke_without_command=True)
 def analyze(
@@ -194,6 +197,7 @@ def logout(plan: Annotated[Plan, typer.Argument(help="The plan to sign out of")]
     else:
         console.print("Not signed in to ChatGPT.")
 
+# fmt: on
 
 if __name__ == "__main__":
     app()
