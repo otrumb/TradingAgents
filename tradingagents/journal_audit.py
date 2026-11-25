@@ -107,16 +107,24 @@ class JournalAudit:
     query: AuditQuery
     cohorts: tuple[CohortAudit, ...]
 
+    def _primary(self, asset: str) -> tuple[CohortAudit, ...]:
+        benchmark = {"ETHUSDT": "binance_spot:BTCUSDT", "BTCUSDT": "cash:USDT"}.get(asset)
+        return tuple(
+            c
+            for c in self.cohorts
+            if c.key.asset == asset
+            and c.key.window == self.query.window
+            and c.rating == self.query.rating
+            and (
+                benchmark is None
+                or (c.key.asset_provider == "binance_spot" and c.key.benchmark == benchmark)
+            )
+        )
+
     def render_json(self) -> str:
         primary = []
         for asset in sorted(set(self.query.assets)):
-            matches = [
-                c.aggregate()
-                for c in self.cohorts
-                if c.key.asset == asset
-                and c.key.window == self.query.window
-                and c.rating == self.query.rating
-            ]
+            matches = [c.aggregate() for c in self._primary(asset)]
             primary.extend(
                 matches
                 or [
@@ -159,13 +167,7 @@ class JournalAudit:
             f"Advisory min_sample={self.query.min_sample}; closed intervals; earliest finish selection."
         )
         for asset in sorted(set(self.query.assets)):
-            matches = [
-                c
-                for c in self.cohorts
-                if c.key.asset == asset
-                and c.key.window == self.query.window
-                and c.rating == self.query.rating
-            ]
+            matches = self._primary(asset)
             if not matches:
                 lines.append(
                     f"{asset} | {self.query.window} | {self.query.rating}: insufficient (n=0)"
@@ -256,8 +258,8 @@ def audit_journal(path: Path, query: AuditQuery = AuditQuery()) -> JournalAudit:
                     mean.hex() if mean is not None else None,
                     negative_count,
                     fraction,
-                    fraction > 0.5
-                    if fraction is not None and action_adjusted_return(rating, 1.0) is not None
+                    score.hit_rate > 0.5
+                    if enough and score is not None and score.hit_rate is not None
                     else None,
                 )
             )

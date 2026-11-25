@@ -17,6 +17,7 @@ def frame(
     alpha: float = -0.02,
     asset: str = "ETHUSDT",
     provider: str = "binance_spot",
+    benchmark: tuple[str, str] = ("cash", "USDT"),
 ) -> bytes:
     first = date(2026, 1, 1) + timedelta(days=start)
     last = first + timedelta(days=7)
@@ -39,8 +40,8 @@ def frame(
                 "exit_price": 100 * (1 + alpha),
             },
             "benchmark": {
-                "provider": "cash",
-                "symbol": "USDT",
+                "provider": benchmark[0],
+                "symbol": benchmark[1],
                 "entry_date": first.isoformat(),
                 "exit_date": last.isoformat(),
                 "entry_price": 1.0,
@@ -111,9 +112,10 @@ def test_exact_alpha_stays_internal_and_aggregate_hex_survives(
     assert cohort["mean_alpha_hex"] == cohort["mean_alpha"].hex()
 
 
-def test_insufficient_is_null_even_with_positive_evidence(tmp_path: Path) -> None:
+@pytest.mark.parametrize("rating", ["Buy", "Overweight", "Underweight", "Sell", "Hold"])
+def test_insufficient_is_null_even_with_positive_evidence(tmp_path: Path, rating: str) -> None:
     path = tmp_path / "journal"
-    path.write_bytes(frame(0))
+    path.write_bytes(frame(0, rating=rating))
 
     audit = audit_journal(path)
 
@@ -155,6 +157,53 @@ def test_cohorts_keep_assets_and_providers_separate(tmp_path: Path) -> None:
         ("ETHUSDT", "binance_spot", 1),
         ("ETHUSDT", "yahoo", 1),
     ]
+
+
+@pytest.mark.parametrize(
+    "asset,benchmark",
+    [("ETHUSDT", ("binance_spot", "BTCUSDT")), ("BTCUSDT", ("cash", "USDT"))],
+)
+@pytest.mark.parametrize("include_exact", [False, True])
+def test_primary_requires_exact_provider_and_benchmark(
+    tmp_path: Path, asset: str, benchmark: tuple[str, str], include_exact: bool
+) -> None:
+    path = tmp_path / "journal"
+    wrong_benchmark = ("cash", "USDT") if asset == "ETHUSDT" else ("binance_spot", "BTCUSDT")
+    data = (
+        frame(0, asset=asset, benchmark=wrong_benchmark)
+        + frame(0, asset=asset, provider="yahoo", benchmark=benchmark)
+        + frame(0, asset=asset, benchmark=("yahoo", benchmark[1]))
+        + frame(0, asset=asset, benchmark=("binance_spot", "ETHUSDT"))
+    )
+    if include_exact:
+        data += frame(0, asset=asset, benchmark=benchmark)
+    path.write_bytes(data)
+
+    audit = audit_journal(path, AuditQuery(assets=(asset,), min_sample=1))
+
+    document = json.loads(audit.render_json())
+    assert len(document["cohorts"]) == 4 + include_exact
+    assert all(row["count"] == 1 for row in document["cohorts"])
+    assert len(document["primary"]) == 1
+    primary = document["primary"][0]
+    answer = audit.render().splitlines()[2:]
+    assert len(answer) == 1
+    if include_exact:
+        assert primary["key"] == {
+            "asset": asset,
+            "asset_provider": "binance_spot",
+            "benchmark": ":".join(benchmark),
+            "window": "utc_days:7",
+        }
+        assert primary["count"] == 1 and primary["status"] == "sufficient"
+        assert answer[0].split(" | ")[:3] == [asset, "binance_spot", ":".join(benchmark)]
+    else:
+        assert (primary["count"], primary["status"], primary["favorable"]) == (
+            0,
+            "insufficient",
+            None,
+        )
+        assert answer == [f"{asset} | utc_days:7 | Underweight: insufficient (n=0)"]
 
 
 def test_read_decode_once_no_mutation_or_sensitive_output(tmp_path: Path) -> None:
@@ -266,20 +315,32 @@ def test_empty_journal_reports_missing_primary_as_insufficient(tmp_path: Path) -
         ((-0.01, -0.01, -0.01, 0.10, 0.10, 0.10), 3, False),
     ],
 )
-def test_underweight_answer_uses_negative_majority_not_mean(
+@pytest.mark.parametrize(
+    "rating,direction",
+    [("Buy", 1), ("Overweight", 1), ("Underweight", -1), ("Sell", -1), ("Hold", 0)],
+)
+def test_favorable_uses_rating_direction_majority_not_mean(
     tmp_path: Path,
     alphas: tuple[float, ...],
     negative_count: int,
     favorable: bool,
+    rating: str,
+    direction: int,
 ) -> None:
     path = tmp_path / "journal"
-    path.write_bytes(b"".join(frame(n * 8, alpha=alpha) for n, alpha in enumerate(alphas)))
+    path.write_bytes(
+        b"".join(frame(n * 8, alpha=alpha, rating=rating) for n, alpha in enumerate(alphas))
+    )
 
     audit = audit_journal(path)
 
     cohort = json.loads(audit.render_json())["cohorts"][0]
     assert cohort["negative_alpha_count"] == negative_count
     assert cohort["negative_alpha_fraction"] == negative_count / len(alphas)
-    assert cohort["favorable"] is favorable
+    hit_rate = sum(alpha * direction > 0 for alpha in alphas) / len(alphas) if direction else None
+    expected = hit_rate > 0.5 if hit_rate is not None else None
+    assert cohort["favorable"] is expected
+    if direction == -1:
+        assert cohort["favorable"] is favorable
     assert cohort["mean_alpha"] == pytest.approx(sum(alphas) / len(alphas))
-    assert cohort["hit_rate"] == negative_count / len(alphas)
+    assert cohort["hit_rate"] == hit_rate
