@@ -56,7 +56,7 @@ def collect_watch(request: WatchRequest) -> WatchSnapshot:
                 end_time = (cutoff - EPOCH - timedelta(microseconds=1)) // timedelta(milliseconds=1)
                 path = (
                     f"/fapi/v1/klines?symbol={symbol}&interval={interval}"
-                    f"&limit=100&endTime={end_time}"
+                    f"&limit={request.history_limit}&endTime={end_time}"
                 )
                 rows = ROWS.validate_json(_get(session, path, request.timeout_seconds))
                 candles = tuple(

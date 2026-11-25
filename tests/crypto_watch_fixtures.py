@@ -55,7 +55,7 @@ def watch_wire(monkeypatch):
             assert query == {
                 "symbol": [state.get("symbol", "BTCUSDT")],
                 "interval": [interval],
-                "limit": ["100"],
+                "limit": [str(state.get("limit", 100))],
                 "endTime": [str(state.get("end", (CUTOFF - EPOCH) // MS - 1))],
             }
             payload = state["rows"][interval]
