@@ -182,3 +182,17 @@ def test_historical_evaluator_rejects_live_snapshot(watch_wire):
 def test_cost_boundary_rejects_invalid_rates(value):
     with pytest.raises(ValidationError):
         WatchCosts(round_trip_fee=Decimal(value))
+
+
+def test_hypothetical_plan_has_no_executable_trade_fields():
+    fields = set(plan().model_dump(mode="json"))
+
+    assert fields.isdisjoint(
+        {
+            "quantity",
+            "leverage",
+            "order_type",
+            "execution_method",
+            "exchange_credentials",
+        }
+    )
