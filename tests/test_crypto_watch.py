@@ -86,6 +86,7 @@ def test_failed_clock_never_collects_candles(watch_wire):
     snapshot = collect_watch(WatchRequest(asset="BTC", timeout_seconds=7))
     assert len(watch_wire["calls"]) == 1
     assert snapshot.cutoff is None
+    assert snapshot.observable_at is evaluate_watch(snapshot).observable_at is None
     assert evaluate_watch(snapshot).reasons == ("unavailable",)
 
 

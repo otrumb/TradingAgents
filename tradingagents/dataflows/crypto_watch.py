@@ -105,6 +105,7 @@ def collect_watch(request: WatchRequest) -> WatchSnapshot:
         asset=request.asset,
         symbol=symbol,
         cutoff=cutoff,
+        observable_at=request.as_of if request.as_of is not None else server_time,
         server_time=server_time,
         as_of=request.as_of,
         series=tuple(series),

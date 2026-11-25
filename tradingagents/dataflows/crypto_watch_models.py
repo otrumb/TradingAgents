@@ -90,6 +90,7 @@ class WatchSnapshot(FrozenModel):
     market: Literal["USD-M perpetual"] = "USD-M perpetual"
     endpoint: Literal["/fapi/v1/klines"] = "/fapi/v1/klines"
     cutoff: AwareDatetime | None
+    observable_at: AwareDatetime | None
     server_time: AwareDatetime | None
     as_of: AwareDatetime | None
     series: tuple[WatchSeries, ...]
@@ -109,6 +110,8 @@ class WatchSnapshot(FrozenModel):
                 raise ContextContractError(field="watch exchange cutoff")
         elif self.cutoff is not None or self.server_time is not None:
             raise ContextContractError(field="watch failed clock cutoff")
+        if self.observable_at != (self.as_of if self.as_of is not None else self.server_time):
+            raise ContextContractError(field="watch observable timestamp")
         if self.cutoff is None and any(s.candles for s in self.series):
             raise ContextContractError(field="watch missing cutoff")
         if self.cutoff is not None and any(
@@ -134,6 +137,7 @@ class WatchDecision(FrozenModel):
     source: Literal["https://fapi.binance.com"] = "https://fapi.binance.com"
     as_of: AwareDatetime | None
     cutoff: AwareDatetime | None
+    observable_at: AwareDatetime | None
     bias: Direction = "neutral"
     setup: Direction = "neutral"
     trigger: Direction = "neutral"
@@ -158,6 +162,12 @@ class WatchDecision(FrozenModel):
             or len(self.latest_closes) != 3
         ):
             raise ContextContractError(field="watch decision identity/coverage")
+        if self.as_of != self.cutoff or ((self.cutoff is None) != (self.observable_at is None)):
+            raise ContextContractError(field="watch decision timestamps")
+        if self.cutoff is not None and (
+            self.observable_at is None or self.cutoff > self.observable_at
+        ):
+            raise ContextContractError(field="watch decision observable order")
         match self.action:
             case "wait":
                 if not self.reasons or self.hypothetical is not None:
@@ -175,6 +185,7 @@ class WatchDecision(FrozenModel):
             self.hypothetical is None
             or self.hypothetical.direction != self.bias
             or self.hypothetical.decision_as_of != self.as_of
+            or self.hypothetical.observable_at != self.observable_at
         ):
             raise ContextContractError(field="watch hypothetical alignment")
         return self
