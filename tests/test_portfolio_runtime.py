@@ -50,6 +50,7 @@ def runtime(monkeypatch, tmp_path):
             asset=request.asset,
             symbol=f"{request.asset}USDT",
             cutoff=cutoff,
+            observable_at=cutoff,
             as_of=cutoff,
             server_time=None,
             series=tuple(WatchSeries(interval=i) for i in ("1d", "4h", "1h")),
