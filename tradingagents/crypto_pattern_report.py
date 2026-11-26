@@ -1,7 +1,7 @@
 """Validated classic pattern artifacts and bounded evidence-only report text."""
 
 from collections.abc import Mapping
-from datetime import UTC, date, datetime
+from datetime import date
 from html import escape
 from typing import Final
 
@@ -31,8 +31,7 @@ def validate_patterns(state: Mapping[str, str]) -> CryptoPatternEvidence | None:
         state.get("asset_type") != "crypto"
         or evidence.asset != crypto_base(state.get("company_of_interest", ""))
         or not state.get("trade_date")
-        or date.fromisoformat(state["trade_date"])
-        != (evidence.analysis_date or datetime.now(UTC).date())
+        or date.fromisoformat(state["trade_date"]) != evidence.run_date
     ):
         raise ContextContractError(field="pattern run identity/date")
     return evidence

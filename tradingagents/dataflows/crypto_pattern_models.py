@@ -8,7 +8,7 @@ from pydantic import Field, StrictInt, ValidationInfo, model_validator
 from .crypto_derivatives_models import Timestamp
 from .crypto_models import Asset, ContextContractError, FrozenModel, Source, SourceFailure
 
-PATTERN_SCHEMA_VERSION: Final = "1"
+PATTERN_SCHEMA_VERSION: Final = "2"
 PATTERN_CATALOG_VERSION: Final = "classic-crypto-v1"
 PatternStatus = Literal["forming", "confirmed", "failed"]
 StreamStatus = Literal[
@@ -210,18 +210,25 @@ class PatternStreamSummary(PatternStreamKey):
     detector_errors: tuple[str, ...] = ()
 
 
-class CryptoPatternSummary(FrozenModel):
-    schema_version: Literal["1"] = PATTERN_SCHEMA_VERSION
+class PatternRunIdentity(FrozenModel):
+    schema_version: Literal["2"] = PATTERN_SCHEMA_VERSION
     asset: Asset
+    run_date: date = Field(strict=True)
     analysis_date: date | None = None
+
+    @model_validator(mode="after")
+    def consistent_run_date(self) -> Self:
+        if self.analysis_date is not None and self.analysis_date != self.run_date:
+            raise ContextContractError(field="pattern analysis/run date")
+        return self
+
+
+class CryptoPatternSummary(PatternRunIdentity):
     catalog: PatternCatalogEvidence
     streams: tuple[PatternStreamSummary, ...]
 
 
-class CryptoPatternEvidence(FrozenModel):
-    schema_version: Literal["1"] = PATTERN_SCHEMA_VERSION
-    asset: Asset
-    analysis_date: date | None = None
+class CryptoPatternEvidence(PatternRunIdentity):
     catalog: PatternCatalogEvidence
     streams: tuple[PatternStreamEvidence, ...]
 
@@ -258,6 +265,7 @@ class CryptoPatternEvidence(FrozenModel):
         return CryptoPatternSummary(
             schema_version=self.schema_version,
             asset=self.asset,
+            run_date=self.run_date,
             analysis_date=self.analysis_date,
             catalog=self.catalog,
             streams=tuple(streams),

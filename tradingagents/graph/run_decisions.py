@@ -37,12 +37,11 @@ def initialize_decisions(
     ).model_dump_json()
     analyzed = crypto_base(ticker) if state["asset_type"] == "crypto" else None
     if analyzed in {"BTC", "ETH", "SOL"}:
+        run_date = date.fromisoformat(state["trade_date"])
         cutoff = (
             None
             if current
-            else datetime.combine(
-                date.fromisoformat(state["trade_date"]) + timedelta(days=1), time.min, tzinfo=UTC
-            )
+            else datetime.combine(run_date + timedelta(days=1), time.min, tzinfo=UTC)
         )
         if state.get("crypto_futures_watch_evidence"):
             watch = WatchSnapshot.model_validate_json(state["crypto_futures_watch_evidence"])
@@ -55,7 +54,7 @@ def initialize_decisions(
             if spot is None:
                 spot = SpotPriceContext(
                     asset=watch.asset,
-                    analysis_date=None if current else date.fromisoformat(state["trade_date"]),
+                    analysis_date=None if current else run_date,
                     semantics="current_run_only" if current else "historical_finalized",
                     daily_failure=SourceFailure(
                         kind="unavailable", detail="Run-start Spot evidence unavailable"
@@ -71,7 +70,7 @@ def initialize_decisions(
                     else watch.observable_at or cutoff or datetime.now(UTC)
                 ),
             )
-            evidence = classic_pattern_evidence(spot, watch, observed_at)
+            evidence = classic_pattern_evidence(spot, watch, observed_at, run_date=run_date)
             canonical = CryptoPatternEvidence.model_validate_json(evidence.model_dump_json())
             summary = CryptoPatternSummary.model_validate_json(
                 canonical.summary().model_dump_json()

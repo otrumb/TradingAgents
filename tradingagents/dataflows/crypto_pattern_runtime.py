@@ -1,7 +1,7 @@
 """Classic evidence from already finalized public streams; no fetching or trading actions."""
 
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import date, datetime
 from typing import assert_never
 
 import numpy as np
@@ -170,6 +170,8 @@ def classic_pattern_evidence(
     spot: SpotPriceContext,
     watch: WatchSnapshot | None,
     observed_at: datetime,
+    *,
+    run_date: date,
 ) -> CryptoPatternEvidence:
     """Use supplied retrieval time for Spot and snapshot observation time for perpetual."""
     streams = [spot_stream(spot, observed_at)]
@@ -183,6 +185,7 @@ def classic_pattern_evidence(
     counts = load_certification().counts()
     return CryptoPatternEvidence(
         asset=spot.asset,
+        run_date=run_date,
         analysis_date=spot.analysis_date,
         catalog=PatternCatalogEvidence(
             total_count=sum(counts.values()),
