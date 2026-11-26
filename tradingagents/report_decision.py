@@ -1,6 +1,7 @@
 """Validate deterministic state and render its report summary."""
 
 from tradingagents.agents.rating import run_rating
+from tradingagents.crypto_pattern_report import pattern_sources, validate_patterns
 from tradingagents.dataflows.crypto_models import ContextContractError
 from tradingagents.dataflows.crypto_spot_models import SpotPriceContext
 from tradingagents.dataflows.crypto_watch_evaluator import evaluate_watch
@@ -75,13 +76,13 @@ def decision_summary(state: dict) -> str:
         lines.append(render_watch_details(watch))
     else:
         lines.append("- Futures Watch 1d/4h/1h: unavailable")
-    observed = observed_sources(state)
+    observed = observed_sources(state, include_patterns=False)
     if observed:
         lines.append("- Observed evidence: " + observed)
     return "\n".join(lines)
 
 
-def observed_sources(state: dict) -> str:
+def observed_sources(state: dict, *, include_patterns: bool = True) -> str:
     sources = []
     if state.get("crypto_market_data"):
         spot = SpotPriceContext.model_validate_json(state["crypto_market_data"])
@@ -91,4 +92,6 @@ def observed_sources(state: dict) -> str:
         watch = WatchSnapshot.model_validate_json(state["crypto_futures_watch_evidence"])
         if any(series.candles for series in watch.series):
             sources.append("Binance USD-M")
-    return " / ".join(sources)
+    if include_patterns:
+        sources.extend(pattern_sources(validate_patterns(state)))
+    return " / ".join(dict.fromkeys(sources))
