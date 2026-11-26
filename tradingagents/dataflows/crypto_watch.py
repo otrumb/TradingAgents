@@ -11,6 +11,7 @@ from .crypto_spot_models import KlineRow, ServerClock, utc_milliseconds
 from .crypto_watch_models import (
     EPOCH,
     INTERVALS,
+    WATCH_DECISION_HISTORY_LIMIT,
     WATCH_SAFETY_LAG,
     WatchCandle,
     WatchRequest,
@@ -89,7 +90,19 @@ def collect_watch(request: WatchRequest) -> WatchSnapshot:
                         key=lambda candle: candle.open_time,
                     )
                 )
-                series.append(WatchSeries(interval=interval, candles=candles))
+                series.append(
+                    WatchSeries(
+                        interval=interval,
+                        candles=candles,
+                        decision_window_start=min(
+                            (
+                                utc_milliseconds(row[0])
+                                for row in rows[-WATCH_DECISION_HISTORY_LIMIT:]
+                            ),
+                            default=None,
+                        ),
+                    )
+                )
             except requests.HTTPError as exc:
                 series.append(
                     WatchSeries(

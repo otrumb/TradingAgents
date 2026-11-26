@@ -30,6 +30,7 @@ DURATIONS: Final[dict[Interval, timedelta]] = {
 EPOCH: Final = datetime(1970, 1, 1, tzinfo=UTC)
 WATCH_SAFETY_LAG: Final = timedelta(seconds=5)
 HISTORICAL_OBSERVATION_LATENCY: Final = timedelta(seconds=4)
+WATCH_DECISION_HISTORY_LIMIT: Final[int] = 100
 REQUIRED: Final[dict[Interval, int]] = {"1d": 55, "4h": 21, "1h": 21}
 FRESHNESS: Final[dict[Interval, timedelta]] = {
     "1d": timedelta(hours=48),
@@ -72,6 +73,8 @@ class WatchSeries(FrozenModel):
     interval: Interval
     candles: tuple[WatchCandle, ...] = ()
     failure: SourceFailure | None = None
+    # First API row in the legacy window, before unfinished candles are filtered.
+    decision_window_start: AwareDatetime | None = None
 
     @model_validator(mode="after")
     def valid_history(self) -> Self:

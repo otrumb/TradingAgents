@@ -2,7 +2,7 @@
 
 from datetime import datetime
 from decimal import Decimal
-from typing import Final, Literal, TypedDict, assert_never
+from typing import Literal, TypedDict, assert_never
 
 from .crypto_models import Asset, ContextContractError
 from .crypto_spot_models import SpotSymbol
@@ -11,6 +11,7 @@ from .crypto_watch_models import (
     DURATIONS,
     FRESHNESS,
     REQUIRED,
+    WATCH_DECISION_HISTORY_LIMIT,
     Direction,
     WatchCondition,
     WatchDecision,
@@ -18,8 +19,6 @@ from .crypto_watch_models import (
 )
 from .crypto_watch_report import render_watch_details
 from .crypto_watch_scenario_models import HypotheticalPlan
-
-WATCH_DECISION_HISTORY_LIMIT: Final[int] = 100
 
 
 class _Evidence(TypedDict):
@@ -47,7 +46,14 @@ def evaluate_watch(snapshot: WatchSnapshot) -> WatchDecision:
         update={
             "series": tuple(
                 series.model_copy(
-                    update={"candles": series.candles[-WATCH_DECISION_HISTORY_LIMIT:]}
+                    update={
+                        "candles": tuple(
+                            candle
+                            for candle in series.candles[-WATCH_DECISION_HISTORY_LIMIT:]
+                            if series.decision_window_start is None
+                            or candle.open_time >= series.decision_window_start
+                        )
+                    }
                 )
                 for series in snapshot.series
             )
