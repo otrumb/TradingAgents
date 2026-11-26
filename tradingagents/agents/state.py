@@ -47,6 +47,8 @@ class AgentState(MessagesState):
     spot_action_data: Annotated[str, "Serialized deterministic action from final market rating"]
     crypto_futures_watch_evidence: Annotated[str, "Canonical read-only futures watch snapshot"]
     crypto_futures_watch_data: Annotated[str, "Deterministic 1d/4h/1h futures watch decision"]
+    crypto_pattern_evidence: Annotated[str, "Canonical descriptive CryptoPatternEvidence JSON"]
+    crypto_pattern_report: Annotated[str, "Compact descriptive CryptoPatternSummary JSON"]
 
     # researcher team discussion step
     investment_debate_state: Annotated[

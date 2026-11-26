@@ -71,6 +71,8 @@ class Propagator:
             "spot_action_data": "",
             "crypto_futures_watch_evidence": "",
             "crypto_futures_watch_data": "",
+            "crypto_pattern_evidence": "",
+            "crypto_pattern_report": "",
         }
 
     def get_graph_args(self, callbacks: list | None = None) -> dict[str, Any]:
