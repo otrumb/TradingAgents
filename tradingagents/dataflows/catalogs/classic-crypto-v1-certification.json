@@ -1,0 +1,6816 @@
+{
+  "catalog_version": "classic-crypto-v1",
+  "package_version": "1.2.2",
+  "protocol": "bounded-causal-v1",
+  "entries": [
+    {
+      "pattern_id": "candles.abandoned_baby_bearish",
+      "canonical_id": "candles.abandoned_baby_bearish",
+      "status": "unsupported",
+      "reasons": [
+        "no_positive_fixture",
+        "output_length:prefix:flat",
+        "output_length:prefix:high_volatility",
+        "output_length:prefix:owned",
+        "output_length:prefix:short_2",
+        "output_length:prefix:short_5",
+        "output_length:prefix:zero_volume",
+        "output_length:short_0",
+        "output_length:short_1"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture",
+            "output_length:prefix:flat",
+            "output_length:prefix:high_volatility",
+            "output_length:prefix:owned",
+            "output_length:prefix:short_2",
+            "output_length:prefix:short_5",
+            "output_length:prefix:zero_volume",
+            "output_length:short_0",
+            "output_length:short_1"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "candles.abandoned_baby_bullish",
+      "canonical_id": "candles.abandoned_baby_bullish",
+      "status": "unsupported",
+      "reasons": [
+        "no_positive_fixture",
+        "output_length:prefix:flat",
+        "output_length:prefix:high_volatility",
+        "output_length:prefix:owned",
+        "output_length:prefix:short_2",
+        "output_length:prefix:short_5",
+        "output_length:prefix:zero_volume",
+        "output_length:short_0",
+        "output_length:short_1"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture",
+            "output_length:prefix:flat",
+            "output_length:prefix:high_volatility",
+            "output_length:prefix:owned",
+            "output_length:prefix:short_2",
+            "output_length:prefix:short_5",
+            "output_length:prefix:zero_volume",
+            "output_length:short_0",
+            "output_length:short_1"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "candles.above_stomach",
+      "canonical_id": "candles.above_stomach",
+      "status": "unsupported",
+      "reasons": [
+        "no_positive_fixture",
+        "output_length:short_0"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture",
+            "output_length:short_0"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "candles.advance_block",
+      "canonical_id": "candles.advance_block",
+      "status": "unsupported",
+      "reasons": [
+        "no_positive_fixture",
+        "output_length:prefix:flat",
+        "output_length:prefix:high_volatility",
+        "output_length:prefix:owned",
+        "output_length:prefix:short_2",
+        "output_length:prefix:short_5",
+        "output_length:prefix:zero_volume",
+        "output_length:short_0",
+        "output_length:short_1"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture",
+            "output_length:prefix:flat",
+            "output_length:prefix:high_volatility",
+            "output_length:prefix:owned",
+            "output_length:prefix:short_2",
+            "output_length:prefix:short_5",
+            "output_length:prefix:zero_volume",
+            "output_length:short_0",
+            "output_length:short_1"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "candles.below_stomach",
+      "canonical_id": "candles.below_stomach",
+      "status": "unsupported",
+      "reasons": [
+        "no_positive_fixture",
+        "output_length:short_0"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture",
+            "output_length:short_0"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "candles.belt_hold_bearish",
+      "canonical_id": "candles.belt_hold_bearish",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "candles.belt_hold_bullish",
+      "canonical_id": "candles.belt_hold_bullish",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "candles.black_candle",
+      "canonical_id": "candles.black_candle",
+      "status": "available",
+      "reasons": [
+        "bounded_causal_certified"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [],
+          "positive_fixture": "owned_shapes_v1:1:-1"
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "candles.breakaway_bearish",
+      "canonical_id": "candles.breakaway_bearish",
+      "status": "unsupported",
+      "reasons": [
+        "no_positive_fixture",
+        "output_length:prefix:flat",
+        "output_length:prefix:high_volatility",
+        "output_length:prefix:owned",
+        "output_length:prefix:short_5",
+        "output_length:prefix:zero_volume",
+        "output_length:short_0",
+        "output_length:short_1",
+        "output_length:short_2"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture",
+            "output_length:prefix:flat",
+            "output_length:prefix:high_volatility",
+            "output_length:prefix:owned",
+            "output_length:prefix:short_5",
+            "output_length:prefix:zero_volume",
+            "output_length:short_0",
+            "output_length:short_1",
+            "output_length:short_2"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "candles.breakaway_bullish",
+      "canonical_id": "candles.breakaway_bullish",
+      "status": "unsupported",
+      "reasons": [
+        "no_positive_fixture",
+        "output_length:prefix:flat",
+        "output_length:prefix:high_volatility",
+        "output_length:prefix:owned",
+        "output_length:prefix:short_5",
+        "output_length:prefix:zero_volume",
+        "output_length:short_0",
+        "output_length:short_1",
+        "output_length:short_2"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture",
+            "output_length:prefix:flat",
+            "output_length:prefix:high_volatility",
+            "output_length:prefix:owned",
+            "output_length:prefix:short_5",
+            "output_length:prefix:zero_volume",
+            "output_length:short_0",
+            "output_length:short_1",
+            "output_length:short_2"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "candles.closing_marubozu_black",
+      "canonical_id": "candles.closing_marubozu_black",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "candles.closing_marubozu_white",
+      "canonical_id": "candles.closing_marubozu_white",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "candles.collapse_doji_star",
+      "canonical_id": "candles.collapse_doji_star",
+      "status": "unsupported",
+      "reasons": [
+        "no_positive_fixture",
+        "output_length:prefix:flat",
+        "output_length:prefix:high_volatility",
+        "output_length:prefix:owned",
+        "output_length:prefix:short_2",
+        "output_length:prefix:short_5",
+        "output_length:prefix:zero_volume",
+        "output_length:short_0",
+        "output_length:short_1"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture",
+            "output_length:prefix:flat",
+            "output_length:prefix:high_volatility",
+            "output_length:prefix:owned",
+            "output_length:prefix:short_2",
+            "output_length:prefix:short_5",
+            "output_length:prefix:zero_volume",
+            "output_length:short_0",
+            "output_length:short_1"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "candles.concealing_baby_swallow",
+      "canonical_id": "candles.concealing_baby_swallow",
+      "status": "unsupported",
+      "reasons": [
+        "no_positive_fixture",
+        "output_length:prefix:flat",
+        "output_length:prefix:high_volatility",
+        "output_length:prefix:owned",
+        "output_length:prefix:short_5",
+        "output_length:prefix:zero_volume",
+        "output_length:short_0",
+        "output_length:short_1",
+        "output_length:short_2"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture",
+            "output_length:prefix:flat",
+            "output_length:prefix:high_volatility",
+            "output_length:prefix:owned",
+            "output_length:prefix:short_5",
+            "output_length:prefix:zero_volume",
+            "output_length:short_0",
+            "output_length:short_1",
+            "output_length:short_2"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "candles.dark_cloud_cover",
+      "canonical_id": "candles.dark_cloud_cover",
+      "status": "unsupported",
+      "reasons": [
+        "no_positive_fixture",
+        "output_length:short_0"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture",
+            "output_length:short_0"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "candles.deliberation",
+      "canonical_id": "candles.deliberation",
+      "status": "unsupported",
+      "reasons": [
+        "no_positive_fixture",
+        "output_length:prefix:flat",
+        "output_length:prefix:high_volatility",
+        "output_length:prefix:owned",
+        "output_length:prefix:short_2",
+        "output_length:prefix:short_5",
+        "output_length:prefix:zero_volume",
+        "output_length:short_0",
+        "output_length:short_1"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture",
+            "output_length:prefix:flat",
+            "output_length:prefix:high_volatility",
+            "output_length:prefix:owned",
+            "output_length:prefix:short_2",
+            "output_length:prefix:short_5",
+            "output_length:prefix:zero_volume",
+            "output_length:short_0",
+            "output_length:short_1"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "candles.doji",
+      "canonical_id": "candles.doji",
+      "status": "available",
+      "reasons": [
+        "bounded_causal_certified"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [],
+          "positive_fixture": "owned_shapes_v1:2:1"
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "candles.doji_star_bearish",
+      "canonical_id": "candles.doji_star_bearish",
+      "status": "unsupported",
+      "reasons": [
+        "no_positive_fixture",
+        "output_length:short_0"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture",
+            "output_length:short_0"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "candles.doji_star_bullish",
+      "canonical_id": "candles.doji_star_bullish",
+      "status": "unsupported",
+      "reasons": [
+        "no_positive_fixture",
+        "output_length:short_0"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture",
+            "output_length:short_0"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "candles.downside_gap_three_methods",
+      "canonical_id": "candles.downside_gap_three_methods",
+      "status": "unsupported",
+      "reasons": [
+        "no_positive_fixture",
+        "output_length:prefix:flat",
+        "output_length:prefix:high_volatility",
+        "output_length:prefix:owned",
+        "output_length:prefix:short_2",
+        "output_length:prefix:short_5",
+        "output_length:prefix:zero_volume",
+        "output_length:short_0",
+        "output_length:short_1"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture",
+            "output_length:prefix:flat",
+            "output_length:prefix:high_volatility",
+            "output_length:prefix:owned",
+            "output_length:prefix:short_2",
+            "output_length:prefix:short_5",
+            "output_length:prefix:zero_volume",
+            "output_length:short_0",
+            "output_length:short_1"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "candles.downside_tasuki_gap",
+      "canonical_id": "candles.downside_tasuki_gap",
+      "status": "unsupported",
+      "reasons": [
+        "no_positive_fixture",
+        "output_length:prefix:flat",
+        "output_length:prefix:high_volatility",
+        "output_length:prefix:owned",
+        "output_length:prefix:short_2",
+        "output_length:prefix:short_5",
+        "output_length:prefix:zero_volume",
+        "output_length:short_0",
+        "output_length:short_1"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture",
+            "output_length:prefix:flat",
+            "output_length:prefix:high_volatility",
+            "output_length:prefix:owned",
+            "output_length:prefix:short_2",
+            "output_length:prefix:short_5",
+            "output_length:prefix:zero_volume",
+            "output_length:short_0",
+            "output_length:short_1"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "candles.dragonfly_doji",
+      "canonical_id": "candles.dragonfly_doji",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "candles.eight_new_price_lines",
+      "canonical_id": "candles.eight_new_price_lines",
+      "status": "unsupported",
+      "reasons": [
+        "no_positive_fixture",
+        "output_dtype:prefix:flat",
+        "output_dtype:prefix:high_volatility",
+        "output_dtype:prefix:owned",
+        "output_dtype:prefix:zero_volume",
+        "output_dtype:short_0",
+        "output_dtype:short_1",
+        "output_dtype:short_2",
+        "output_dtype:short_5"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture",
+            "output_dtype:prefix:flat",
+            "output_dtype:prefix:high_volatility",
+            "output_dtype:prefix:owned",
+            "output_dtype:prefix:zero_volume",
+            "output_dtype:short_0",
+            "output_dtype:short_1",
+            "output_dtype:short_2",
+            "output_dtype:short_5"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "candles.engulfing_bearish",
+      "canonical_id": "candles.engulfing_bearish",
+      "status": "unsupported",
+      "reasons": [
+        "no_positive_fixture",
+        "output_length:short_0"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture",
+            "output_length:short_0"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "candles.engulfing_bullish",
+      "canonical_id": "candles.engulfing_bullish",
+      "status": "unsupported",
+      "reasons": [
+        "output_length:short_0"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "output_length:short_0"
+          ],
+          "positive_fixture": "owned_shapes_v1:4:1"
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "candles.evening_doji_star",
+      "canonical_id": "candles.evening_doji_star",
+      "status": "unsupported",
+      "reasons": [
+        "no_positive_fixture",
+        "output_length:prefix:flat",
+        "output_length:prefix:high_volatility",
+        "output_length:prefix:owned",
+        "output_length:prefix:short_2",
+        "output_length:prefix:short_5",
+        "output_length:prefix:zero_volume",
+        "output_length:short_0",
+        "output_length:short_1"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture",
+            "output_length:prefix:flat",
+            "output_length:prefix:high_volatility",
+            "output_length:prefix:owned",
+            "output_length:prefix:short_2",
+            "output_length:prefix:short_5",
+            "output_length:prefix:zero_volume",
+            "output_length:short_0",
+            "output_length:short_1"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "candles.evening_star",
+      "canonical_id": "candles.evening_star",
+      "status": "unsupported",
+      "reasons": [
+        "no_positive_fixture",
+        "output_length:prefix:flat",
+        "output_length:prefix:high_volatility",
+        "output_length:prefix:owned",
+        "output_length:prefix:short_2",
+        "output_length:prefix:short_5",
+        "output_length:prefix:zero_volume",
+        "output_length:short_0",
+        "output_length:short_1"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture",
+            "output_length:prefix:flat",
+            "output_length:prefix:high_volatility",
+            "output_length:prefix:owned",
+            "output_length:prefix:short_2",
+            "output_length:prefix:short_5",
+            "output_length:prefix:zero_volume",
+            "output_length:short_0",
+            "output_length:short_1"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "candles.falling_three_methods",
+      "canonical_id": "candles.falling_three_methods",
+      "status": "unsupported",
+      "reasons": [
+        "no_positive_fixture",
+        "output_length:prefix:flat",
+        "output_length:prefix:high_volatility",
+        "output_length:prefix:owned",
+        "output_length:prefix:short_5",
+        "output_length:prefix:zero_volume",
+        "output_length:short_0",
+        "output_length:short_1",
+        "output_length:short_2"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture",
+            "output_length:prefix:flat",
+            "output_length:prefix:high_volatility",
+            "output_length:prefix:owned",
+            "output_length:prefix:short_5",
+            "output_length:prefix:zero_volume",
+            "output_length:short_0",
+            "output_length:short_1",
+            "output_length:short_2"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "candles.falling_window",
+      "canonical_id": "candles.falling_window",
+      "status": "unsupported",
+      "reasons": [
+        "no_positive_fixture",
+        "output_length:short_0"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture",
+            "output_length:short_0"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "candles.gapping_down_doji",
+      "canonical_id": "candles.gapping_down_doji",
+      "status": "unsupported",
+      "reasons": [
+        "no_positive_fixture",
+        "output_length:short_0"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture",
+            "output_length:short_0"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "candles.gapping_up_doji",
+      "canonical_id": "candles.gapping_up_doji",
+      "status": "unsupported",
+      "reasons": [
+        "no_positive_fixture",
+        "output_length:short_0"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture",
+            "output_length:short_0"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "candles.gravestone_doji",
+      "canonical_id": "candles.gravestone_doji",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "candles.hammer",
+      "canonical_id": "candles.hammer",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "candles.hanging_man",
+      "canonical_id": "candles.hanging_man",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "candles.harami_bearish",
+      "canonical_id": "candles.harami_bearish",
+      "status": "unsupported",
+      "reasons": [
+        "no_positive_fixture",
+        "output_length:short_0"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture",
+            "output_length:short_0"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "candles.harami_bullish",
+      "canonical_id": "candles.harami_bullish",
+      "status": "unsupported",
+      "reasons": [
+        "no_positive_fixture",
+        "output_length:short_0"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture",
+            "output_length:short_0"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "candles.harami_cross_bearish",
+      "canonical_id": "candles.harami_cross_bearish",
+      "status": "unsupported",
+      "reasons": [
+        "no_positive_fixture",
+        "output_length:short_0"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture",
+            "output_length:short_0"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "candles.harami_cross_bullish",
+      "canonical_id": "candles.harami_cross_bullish",
+      "status": "unsupported",
+      "reasons": [
+        "no_positive_fixture",
+        "output_length:short_0"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture",
+            "output_length:short_0"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "candles.high_wave",
+      "canonical_id": "candles.high_wave",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "candles.hikkake_bearish",
+      "canonical_id": "candles.hikkake_bearish",
+      "status": "unsupported",
+      "reasons": [
+        "no_positive_fixture",
+        "output_length:prefix:flat",
+        "output_length:prefix:high_volatility",
+        "output_length:prefix:owned",
+        "output_length:prefix:short_2",
+        "output_length:prefix:short_5",
+        "output_length:prefix:zero_volume",
+        "output_length:short_0",
+        "output_length:short_1"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture",
+            "output_length:prefix:flat",
+            "output_length:prefix:high_volatility",
+            "output_length:prefix:owned",
+            "output_length:prefix:short_2",
+            "output_length:prefix:short_5",
+            "output_length:prefix:zero_volume",
+            "output_length:short_0",
+            "output_length:short_1"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "candles.hikkake_bullish",
+      "canonical_id": "candles.hikkake_bullish",
+      "status": "unsupported",
+      "reasons": [
+        "no_positive_fixture",
+        "output_length:prefix:flat",
+        "output_length:prefix:high_volatility",
+        "output_length:prefix:owned",
+        "output_length:prefix:short_2",
+        "output_length:prefix:short_5",
+        "output_length:prefix:zero_volume",
+        "output_length:short_0",
+        "output_length:short_1"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture",
+            "output_length:prefix:flat",
+            "output_length:prefix:high_volatility",
+            "output_length:prefix:owned",
+            "output_length:prefix:short_2",
+            "output_length:prefix:short_5",
+            "output_length:prefix:zero_volume",
+            "output_length:short_0",
+            "output_length:short_1"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "candles.homing_pigeon",
+      "canonical_id": "candles.homing_pigeon",
+      "status": "unsupported",
+      "reasons": [
+        "no_positive_fixture",
+        "output_length:short_0"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture",
+            "output_length:short_0"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "candles.identical_three_crows",
+      "canonical_id": "candles.identical_three_crows",
+      "status": "unsupported",
+      "reasons": [
+        "no_positive_fixture",
+        "output_length:prefix:flat",
+        "output_length:prefix:high_volatility",
+        "output_length:prefix:owned",
+        "output_length:prefix:short_2",
+        "output_length:prefix:short_5",
+        "output_length:prefix:zero_volume",
+        "output_length:short_0",
+        "output_length:short_1"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture",
+            "output_length:prefix:flat",
+            "output_length:prefix:high_volatility",
+            "output_length:prefix:owned",
+            "output_length:prefix:short_2",
+            "output_length:prefix:short_5",
+            "output_length:prefix:zero_volume",
+            "output_length:short_0",
+            "output_length:short_1"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "candles.in_neck",
+      "canonical_id": "candles.in_neck",
+      "status": "unsupported",
+      "reasons": [
+        "no_positive_fixture",
+        "output_length:short_0"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture",
+            "output_length:short_0"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "candles.inverted_hammer",
+      "canonical_id": "candles.inverted_hammer",
+      "status": "unsupported",
+      "reasons": [
+        "no_positive_fixture",
+        "output_length:short_0"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture",
+            "output_length:short_0"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "candles.kicking_bearish",
+      "canonical_id": "candles.kicking_bearish",
+      "status": "unsupported",
+      "reasons": [
+        "no_positive_fixture",
+        "output_length:short_0"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture",
+            "output_length:short_0"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "candles.kicking_bullish",
+      "canonical_id": "candles.kicking_bullish",
+      "status": "unsupported",
+      "reasons": [
+        "no_positive_fixture",
+        "output_length:short_0"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture",
+            "output_length:short_0"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "candles.ladder_bottom",
+      "canonical_id": "candles.ladder_bottom",
+      "status": "unsupported",
+      "reasons": [
+        "no_positive_fixture",
+        "output_length:prefix:flat",
+        "output_length:prefix:high_volatility",
+        "output_length:prefix:owned",
+        "output_length:prefix:short_5",
+        "output_length:prefix:zero_volume",
+        "output_length:short_0",
+        "output_length:short_1",
+        "output_length:short_2"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture",
+            "output_length:prefix:flat",
+            "output_length:prefix:high_volatility",
+            "output_length:prefix:owned",
+            "output_length:prefix:short_5",
+            "output_length:prefix:zero_volume",
+            "output_length:short_0",
+            "output_length:short_1",
+            "output_length:short_2"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "candles.last_engulfing_bottom",
+      "canonical_id": "candles.last_engulfing_bottom",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "candles.last_engulfing_top",
+      "canonical_id": "candles.last_engulfing_top",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "candles.long_black_day",
+      "canonical_id": "candles.long_black_day",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "candles.long_legged_doji",
+      "canonical_id": "candles.long_legged_doji",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "candles.long_white_day",
+      "canonical_id": "candles.long_white_day",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "candles.marubozu_black",
+      "canonical_id": "candles.marubozu_black",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "candles.marubozu_white",
+      "canonical_id": "candles.marubozu_white",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "candles.mat_hold",
+      "canonical_id": "candles.mat_hold",
+      "status": "unsupported",
+      "reasons": [
+        "no_positive_fixture",
+        "output_length:prefix:flat",
+        "output_length:prefix:high_volatility",
+        "output_length:prefix:owned",
+        "output_length:prefix:short_5",
+        "output_length:prefix:zero_volume",
+        "output_length:short_0",
+        "output_length:short_1",
+        "output_length:short_2"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture",
+            "output_length:prefix:flat",
+            "output_length:prefix:high_volatility",
+            "output_length:prefix:owned",
+            "output_length:prefix:short_5",
+            "output_length:prefix:zero_volume",
+            "output_length:short_0",
+            "output_length:short_1",
+            "output_length:short_2"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "candles.matching_low",
+      "canonical_id": "candles.matching_low",
+      "status": "unsupported",
+      "reasons": [
+        "no_positive_fixture",
+        "output_length:short_0"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture",
+            "output_length:short_0"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "candles.meeting_lines_bearish",
+      "canonical_id": "candles.meeting_lines_bearish",
+      "status": "unsupported",
+      "reasons": [
+        "no_positive_fixture",
+        "output_length:short_0"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture",
+            "output_length:short_0"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "candles.meeting_lines_bullish",
+      "canonical_id": "candles.meeting_lines_bullish",
+      "status": "unsupported",
+      "reasons": [
+        "no_positive_fixture",
+        "output_length:short_0"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture",
+            "output_length:short_0"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "candles.morning_doji_star",
+      "canonical_id": "candles.morning_doji_star",
+      "status": "unsupported",
+      "reasons": [
+        "no_positive_fixture",
+        "output_length:prefix:flat",
+        "output_length:prefix:high_volatility",
+        "output_length:prefix:owned",
+        "output_length:prefix:short_2",
+        "output_length:prefix:short_5",
+        "output_length:prefix:zero_volume",
+        "output_length:short_0",
+        "output_length:short_1"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture",
+            "output_length:prefix:flat",
+            "output_length:prefix:high_volatility",
+            "output_length:prefix:owned",
+            "output_length:prefix:short_2",
+            "output_length:prefix:short_5",
+            "output_length:prefix:zero_volume",
+            "output_length:short_0",
+            "output_length:short_1"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "candles.morning_star",
+      "canonical_id": "candles.morning_star",
+      "status": "unsupported",
+      "reasons": [
+        "no_positive_fixture",
+        "output_length:prefix:flat",
+        "output_length:prefix:high_volatility",
+        "output_length:prefix:owned",
+        "output_length:prefix:short_2",
+        "output_length:prefix:short_5",
+        "output_length:prefix:zero_volume",
+        "output_length:short_0",
+        "output_length:short_1"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture",
+            "output_length:prefix:flat",
+            "output_length:prefix:high_volatility",
+            "output_length:prefix:owned",
+            "output_length:prefix:short_2",
+            "output_length:prefix:short_5",
+            "output_length:prefix:zero_volume",
+            "output_length:short_0",
+            "output_length:short_1"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "candles.northern_doji",
+      "canonical_id": "candles.northern_doji",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "candles.on_neck",
+      "canonical_id": "candles.on_neck",
+      "status": "unsupported",
+      "reasons": [
+        "no_positive_fixture",
+        "output_length:short_0"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture",
+            "output_length:short_0"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "candles.opening_marubozu_black",
+      "canonical_id": "candles.opening_marubozu_black",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "candles.opening_marubozu_white",
+      "canonical_id": "candles.opening_marubozu_white",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "candles.piercing_pattern",
+      "canonical_id": "candles.piercing_pattern",
+      "status": "unsupported",
+      "reasons": [
+        "no_positive_fixture",
+        "output_length:short_0"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture",
+            "output_length:short_0"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "candles.rickshaw_man",
+      "canonical_id": "candles.rickshaw_man",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "candles.rising_three_methods",
+      "canonical_id": "candles.rising_three_methods",
+      "status": "unsupported",
+      "reasons": [
+        "no_positive_fixture",
+        "output_length:prefix:flat",
+        "output_length:prefix:high_volatility",
+        "output_length:prefix:owned",
+        "output_length:prefix:short_5",
+        "output_length:prefix:zero_volume",
+        "output_length:short_0",
+        "output_length:short_1",
+        "output_length:short_2"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture",
+            "output_length:prefix:flat",
+            "output_length:prefix:high_volatility",
+            "output_length:prefix:owned",
+            "output_length:prefix:short_5",
+            "output_length:prefix:zero_volume",
+            "output_length:short_0",
+            "output_length:short_1",
+            "output_length:short_2"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "candles.rising_window",
+      "canonical_id": "candles.rising_window",
+      "status": "unsupported",
+      "reasons": [
+        "no_positive_fixture",
+        "output_length:short_0"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture",
+            "output_length:short_0"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "candles.separating_lines_bearish",
+      "canonical_id": "candles.separating_lines_bearish",
+      "status": "unsupported",
+      "reasons": [
+        "no_positive_fixture",
+        "output_length:short_0"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture",
+            "output_length:short_0"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "candles.separating_lines_bullish",
+      "canonical_id": "candles.separating_lines_bullish",
+      "status": "unsupported",
+      "reasons": [
+        "no_positive_fixture",
+        "output_length:short_0"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture",
+            "output_length:short_0"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "candles.shooting_star",
+      "canonical_id": "candles.shooting_star",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "candles.shooting_star_two_line",
+      "canonical_id": "candles.shooting_star_two_line",
+      "status": "unsupported",
+      "reasons": [
+        "no_positive_fixture",
+        "output_length:short_0"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture",
+            "output_length:short_0"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "candles.short_black_candle",
+      "canonical_id": "candles.short_black_candle",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "candles.short_white_candle",
+      "canonical_id": "candles.short_white_candle",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "candles.side_by_side_white_lines_bearish",
+      "canonical_id": "candles.side_by_side_white_lines_bearish",
+      "status": "unsupported",
+      "reasons": [
+        "no_positive_fixture",
+        "output_length:prefix:flat",
+        "output_length:prefix:high_volatility",
+        "output_length:prefix:owned",
+        "output_length:prefix:short_2",
+        "output_length:prefix:short_5",
+        "output_length:prefix:zero_volume",
+        "output_length:short_0",
+        "output_length:short_1"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture",
+            "output_length:prefix:flat",
+            "output_length:prefix:high_volatility",
+            "output_length:prefix:owned",
+            "output_length:prefix:short_2",
+            "output_length:prefix:short_5",
+            "output_length:prefix:zero_volume",
+            "output_length:short_0",
+            "output_length:short_1"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "candles.side_by_side_white_lines_bullish",
+      "canonical_id": "candles.side_by_side_white_lines_bullish",
+      "status": "unsupported",
+      "reasons": [
+        "no_positive_fixture",
+        "output_length:prefix:flat",
+        "output_length:prefix:high_volatility",
+        "output_length:prefix:owned",
+        "output_length:prefix:short_2",
+        "output_length:prefix:short_5",
+        "output_length:prefix:zero_volume",
+        "output_length:short_0",
+        "output_length:short_1"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture",
+            "output_length:prefix:flat",
+            "output_length:prefix:high_volatility",
+            "output_length:prefix:owned",
+            "output_length:prefix:short_2",
+            "output_length:prefix:short_5",
+            "output_length:prefix:zero_volume",
+            "output_length:short_0",
+            "output_length:short_1"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "candles.southern_doji",
+      "canonical_id": "candles.southern_doji",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "candles.spinning_top_black",
+      "canonical_id": "candles.spinning_top_black",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "candles.spinning_top_white",
+      "canonical_id": "candles.spinning_top_white",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "candles.stick_sandwich",
+      "canonical_id": "candles.stick_sandwich",
+      "status": "unsupported",
+      "reasons": [
+        "no_positive_fixture",
+        "output_length:prefix:flat",
+        "output_length:prefix:high_volatility",
+        "output_length:prefix:owned",
+        "output_length:prefix:short_2",
+        "output_length:prefix:short_5",
+        "output_length:prefix:zero_volume",
+        "output_length:short_0",
+        "output_length:short_1"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture",
+            "output_length:prefix:flat",
+            "output_length:prefix:high_volatility",
+            "output_length:prefix:owned",
+            "output_length:prefix:short_2",
+            "output_length:prefix:short_5",
+            "output_length:prefix:zero_volume",
+            "output_length:short_0",
+            "output_length:short_1"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "candles.takuri_line",
+      "canonical_id": "candles.takuri_line",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "candles.ten_new_price_lines",
+      "canonical_id": "candles.ten_new_price_lines",
+      "status": "unsupported",
+      "reasons": [
+        "no_positive_fixture",
+        "output_dtype:prefix:flat",
+        "output_dtype:prefix:high_volatility",
+        "output_dtype:prefix:owned",
+        "output_dtype:prefix:zero_volume",
+        "output_dtype:short_0",
+        "output_dtype:short_1",
+        "output_dtype:short_2",
+        "output_dtype:short_5"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture",
+            "output_dtype:prefix:flat",
+            "output_dtype:prefix:high_volatility",
+            "output_dtype:prefix:owned",
+            "output_dtype:prefix:zero_volume",
+            "output_dtype:short_0",
+            "output_dtype:short_1",
+            "output_dtype:short_2",
+            "output_dtype:short_5"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "candles.thirteen_new_price_lines",
+      "canonical_id": "candles.thirteen_new_price_lines",
+      "status": "unsupported",
+      "reasons": [
+        "no_positive_fixture",
+        "output_dtype:prefix:flat",
+        "output_dtype:prefix:high_volatility",
+        "output_dtype:prefix:owned",
+        "output_dtype:prefix:zero_volume",
+        "output_dtype:short_0",
+        "output_dtype:short_1",
+        "output_dtype:short_2",
+        "output_dtype:short_5"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture",
+            "output_dtype:prefix:flat",
+            "output_dtype:prefix:high_volatility",
+            "output_dtype:prefix:owned",
+            "output_dtype:prefix:zero_volume",
+            "output_dtype:short_0",
+            "output_dtype:short_1",
+            "output_dtype:short_2",
+            "output_dtype:short_5"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "candles.three_black_crows",
+      "canonical_id": "candles.three_black_crows",
+      "status": "unsupported",
+      "reasons": [
+        "no_positive_fixture",
+        "output_length:prefix:flat",
+        "output_length:prefix:high_volatility",
+        "output_length:prefix:owned",
+        "output_length:prefix:short_2",
+        "output_length:prefix:short_5",
+        "output_length:prefix:zero_volume",
+        "output_length:short_0",
+        "output_length:short_1"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture",
+            "output_length:prefix:flat",
+            "output_length:prefix:high_volatility",
+            "output_length:prefix:owned",
+            "output_length:prefix:short_2",
+            "output_length:prefix:short_5",
+            "output_length:prefix:zero_volume",
+            "output_length:short_0",
+            "output_length:short_1"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "candles.three_inside_down",
+      "canonical_id": "candles.three_inside_down",
+      "status": "unsupported",
+      "reasons": [
+        "no_positive_fixture",
+        "output_length:prefix:flat",
+        "output_length:prefix:high_volatility",
+        "output_length:prefix:owned",
+        "output_length:prefix:short_2",
+        "output_length:prefix:short_5",
+        "output_length:prefix:zero_volume",
+        "output_length:short_0",
+        "output_length:short_1"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture",
+            "output_length:prefix:flat",
+            "output_length:prefix:high_volatility",
+            "output_length:prefix:owned",
+            "output_length:prefix:short_2",
+            "output_length:prefix:short_5",
+            "output_length:prefix:zero_volume",
+            "output_length:short_0",
+            "output_length:short_1"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "candles.three_inside_up",
+      "canonical_id": "candles.three_inside_up",
+      "status": "unsupported",
+      "reasons": [
+        "no_positive_fixture",
+        "output_length:prefix:flat",
+        "output_length:prefix:high_volatility",
+        "output_length:prefix:owned",
+        "output_length:prefix:short_2",
+        "output_length:prefix:short_5",
+        "output_length:prefix:zero_volume",
+        "output_length:short_0",
+        "output_length:short_1"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture",
+            "output_length:prefix:flat",
+            "output_length:prefix:high_volatility",
+            "output_length:prefix:owned",
+            "output_length:prefix:short_2",
+            "output_length:prefix:short_5",
+            "output_length:prefix:zero_volume",
+            "output_length:short_0",
+            "output_length:short_1"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "candles.three_line_strike_bearish",
+      "canonical_id": "candles.three_line_strike_bearish",
+      "status": "unsupported",
+      "reasons": [
+        "no_positive_fixture",
+        "output_length:prefix:flat",
+        "output_length:prefix:high_volatility",
+        "output_length:prefix:owned",
+        "output_length:prefix:short_5",
+        "output_length:prefix:zero_volume",
+        "output_length:short_0",
+        "output_length:short_1",
+        "output_length:short_2"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture",
+            "output_length:prefix:flat",
+            "output_length:prefix:high_volatility",
+            "output_length:prefix:owned",
+            "output_length:prefix:short_5",
+            "output_length:prefix:zero_volume",
+            "output_length:short_0",
+            "output_length:short_1",
+            "output_length:short_2"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "candles.three_line_strike_bullish",
+      "canonical_id": "candles.three_line_strike_bullish",
+      "status": "unsupported",
+      "reasons": [
+        "no_positive_fixture",
+        "output_length:prefix:flat",
+        "output_length:prefix:high_volatility",
+        "output_length:prefix:owned",
+        "output_length:prefix:short_5",
+        "output_length:prefix:zero_volume",
+        "output_length:short_0",
+        "output_length:short_1",
+        "output_length:short_2"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture",
+            "output_length:prefix:flat",
+            "output_length:prefix:high_volatility",
+            "output_length:prefix:owned",
+            "output_length:prefix:short_5",
+            "output_length:prefix:zero_volume",
+            "output_length:short_0",
+            "output_length:short_1",
+            "output_length:short_2"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "candles.three_outside_down",
+      "canonical_id": "candles.three_outside_down",
+      "status": "unsupported",
+      "reasons": [
+        "no_positive_fixture",
+        "output_length:prefix:flat",
+        "output_length:prefix:high_volatility",
+        "output_length:prefix:owned",
+        "output_length:prefix:short_2",
+        "output_length:prefix:short_5",
+        "output_length:prefix:zero_volume",
+        "output_length:short_0",
+        "output_length:short_1"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture",
+            "output_length:prefix:flat",
+            "output_length:prefix:high_volatility",
+            "output_length:prefix:owned",
+            "output_length:prefix:short_2",
+            "output_length:prefix:short_5",
+            "output_length:prefix:zero_volume",
+            "output_length:short_0",
+            "output_length:short_1"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "candles.three_outside_up",
+      "canonical_id": "candles.three_outside_up",
+      "status": "unsupported",
+      "reasons": [
+        "no_positive_fixture",
+        "output_length:prefix:flat",
+        "output_length:prefix:high_volatility",
+        "output_length:prefix:owned",
+        "output_length:prefix:short_2",
+        "output_length:prefix:short_5",
+        "output_length:prefix:zero_volume",
+        "output_length:short_0",
+        "output_length:short_1"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture",
+            "output_length:prefix:flat",
+            "output_length:prefix:high_volatility",
+            "output_length:prefix:owned",
+            "output_length:prefix:short_2",
+            "output_length:prefix:short_5",
+            "output_length:prefix:zero_volume",
+            "output_length:short_0",
+            "output_length:short_1"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "candles.three_stars_south",
+      "canonical_id": "candles.three_stars_south",
+      "status": "unsupported",
+      "reasons": [
+        "no_positive_fixture",
+        "output_length:prefix:flat",
+        "output_length:prefix:high_volatility",
+        "output_length:prefix:owned",
+        "output_length:prefix:short_2",
+        "output_length:prefix:short_5",
+        "output_length:prefix:zero_volume",
+        "output_length:short_0",
+        "output_length:short_1"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture",
+            "output_length:prefix:flat",
+            "output_length:prefix:high_volatility",
+            "output_length:prefix:owned",
+            "output_length:prefix:short_2",
+            "output_length:prefix:short_5",
+            "output_length:prefix:zero_volume",
+            "output_length:short_0",
+            "output_length:short_1"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "candles.three_white_soldiers",
+      "canonical_id": "candles.three_white_soldiers",
+      "status": "unsupported",
+      "reasons": [
+        "no_positive_fixture",
+        "output_length:prefix:flat",
+        "output_length:prefix:high_volatility",
+        "output_length:prefix:owned",
+        "output_length:prefix:short_2",
+        "output_length:prefix:short_5",
+        "output_length:prefix:zero_volume",
+        "output_length:short_0",
+        "output_length:short_1"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture",
+            "output_length:prefix:flat",
+            "output_length:prefix:high_volatility",
+            "output_length:prefix:owned",
+            "output_length:prefix:short_2",
+            "output_length:prefix:short_5",
+            "output_length:prefix:zero_volume",
+            "output_length:short_0",
+            "output_length:short_1"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "candles.thrusting",
+      "canonical_id": "candles.thrusting",
+      "status": "unsupported",
+      "reasons": [
+        "no_positive_fixture",
+        "output_length:short_0"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture",
+            "output_length:short_0"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "candles.tri_star_bearish",
+      "canonical_id": "candles.tri_star_bearish",
+      "status": "unsupported",
+      "reasons": [
+        "no_positive_fixture",
+        "output_length:prefix:flat",
+        "output_length:prefix:high_volatility",
+        "output_length:prefix:owned",
+        "output_length:prefix:short_2",
+        "output_length:prefix:short_5",
+        "output_length:prefix:zero_volume",
+        "output_length:short_0",
+        "output_length:short_1"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture",
+            "output_length:prefix:flat",
+            "output_length:prefix:high_volatility",
+            "output_length:prefix:owned",
+            "output_length:prefix:short_2",
+            "output_length:prefix:short_5",
+            "output_length:prefix:zero_volume",
+            "output_length:short_0",
+            "output_length:short_1"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "candles.tri_star_bullish",
+      "canonical_id": "candles.tri_star_bullish",
+      "status": "unsupported",
+      "reasons": [
+        "no_positive_fixture",
+        "output_length:prefix:flat",
+        "output_length:prefix:high_volatility",
+        "output_length:prefix:owned",
+        "output_length:prefix:short_2",
+        "output_length:prefix:short_5",
+        "output_length:prefix:zero_volume",
+        "output_length:short_0",
+        "output_length:short_1"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture",
+            "output_length:prefix:flat",
+            "output_length:prefix:high_volatility",
+            "output_length:prefix:owned",
+            "output_length:prefix:short_2",
+            "output_length:prefix:short_5",
+            "output_length:prefix:zero_volume",
+            "output_length:short_0",
+            "output_length:short_1"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "candles.tweezer_bottoms",
+      "canonical_id": "candles.tweezer_bottoms",
+      "status": "unsupported",
+      "reasons": [
+        "no_positive_fixture",
+        "output_length:short_0"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture",
+            "output_length:short_0"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "candles.tweezer_tops",
+      "canonical_id": "candles.tweezer_tops",
+      "status": "unsupported",
+      "reasons": [
+        "no_positive_fixture",
+        "output_length:short_0"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture",
+            "output_length:short_0"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "candles.twelve_new_price_lines",
+      "canonical_id": "candles.twelve_new_price_lines",
+      "status": "unsupported",
+      "reasons": [
+        "no_positive_fixture",
+        "output_dtype:prefix:flat",
+        "output_dtype:prefix:high_volatility",
+        "output_dtype:prefix:owned",
+        "output_dtype:prefix:zero_volume",
+        "output_dtype:short_0",
+        "output_dtype:short_1",
+        "output_dtype:short_2",
+        "output_dtype:short_5"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture",
+            "output_dtype:prefix:flat",
+            "output_dtype:prefix:high_volatility",
+            "output_dtype:prefix:owned",
+            "output_dtype:prefix:zero_volume",
+            "output_dtype:short_0",
+            "output_dtype:short_1",
+            "output_dtype:short_2",
+            "output_dtype:short_5"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "candles.two_black_gapping",
+      "canonical_id": "candles.two_black_gapping",
+      "status": "unsupported",
+      "reasons": [
+        "no_positive_fixture",
+        "output_length:short_0"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture",
+            "output_length:short_0"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "candles.two_crows",
+      "canonical_id": "candles.two_crows",
+      "status": "unsupported",
+      "reasons": [
+        "no_positive_fixture",
+        "output_length:prefix:flat",
+        "output_length:prefix:high_volatility",
+        "output_length:prefix:owned",
+        "output_length:prefix:short_2",
+        "output_length:prefix:short_5",
+        "output_length:prefix:zero_volume",
+        "output_length:short_0",
+        "output_length:short_1"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture",
+            "output_length:prefix:flat",
+            "output_length:prefix:high_volatility",
+            "output_length:prefix:owned",
+            "output_length:prefix:short_2",
+            "output_length:prefix:short_5",
+            "output_length:prefix:zero_volume",
+            "output_length:short_0",
+            "output_length:short_1"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "candles.unique_three_river_bottom",
+      "canonical_id": "candles.unique_three_river_bottom",
+      "status": "unsupported",
+      "reasons": [
+        "no_positive_fixture",
+        "output_length:prefix:flat",
+        "output_length:prefix:high_volatility",
+        "output_length:prefix:owned",
+        "output_length:prefix:short_2",
+        "output_length:prefix:short_5",
+        "output_length:prefix:zero_volume",
+        "output_length:short_0",
+        "output_length:short_1"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture",
+            "output_length:prefix:flat",
+            "output_length:prefix:high_volatility",
+            "output_length:prefix:owned",
+            "output_length:prefix:short_2",
+            "output_length:prefix:short_5",
+            "output_length:prefix:zero_volume",
+            "output_length:short_0",
+            "output_length:short_1"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "candles.upside_gap_three_methods",
+      "canonical_id": "candles.upside_gap_three_methods",
+      "status": "unsupported",
+      "reasons": [
+        "no_positive_fixture",
+        "output_length:prefix:flat",
+        "output_length:prefix:high_volatility",
+        "output_length:prefix:owned",
+        "output_length:prefix:short_2",
+        "output_length:prefix:short_5",
+        "output_length:prefix:zero_volume",
+        "output_length:short_0",
+        "output_length:short_1"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture",
+            "output_length:prefix:flat",
+            "output_length:prefix:high_volatility",
+            "output_length:prefix:owned",
+            "output_length:prefix:short_2",
+            "output_length:prefix:short_5",
+            "output_length:prefix:zero_volume",
+            "output_length:short_0",
+            "output_length:short_1"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "candles.upside_gap_two_crows",
+      "canonical_id": "candles.upside_gap_two_crows",
+      "status": "unsupported",
+      "reasons": [
+        "no_positive_fixture",
+        "output_length:prefix:flat",
+        "output_length:prefix:high_volatility",
+        "output_length:prefix:owned",
+        "output_length:prefix:short_2",
+        "output_length:prefix:short_5",
+        "output_length:prefix:zero_volume",
+        "output_length:short_0",
+        "output_length:short_1"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture",
+            "output_length:prefix:flat",
+            "output_length:prefix:high_volatility",
+            "output_length:prefix:owned",
+            "output_length:prefix:short_2",
+            "output_length:prefix:short_5",
+            "output_length:prefix:zero_volume",
+            "output_length:short_0",
+            "output_length:short_1"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "candles.upside_tasuki_gap",
+      "canonical_id": "candles.upside_tasuki_gap",
+      "status": "unsupported",
+      "reasons": [
+        "no_positive_fixture",
+        "output_length:prefix:flat",
+        "output_length:prefix:high_volatility",
+        "output_length:prefix:owned",
+        "output_length:prefix:short_2",
+        "output_length:prefix:short_5",
+        "output_length:prefix:zero_volume",
+        "output_length:short_0",
+        "output_length:short_1"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture",
+            "output_length:prefix:flat",
+            "output_length:prefix:high_volatility",
+            "output_length:prefix:owned",
+            "output_length:prefix:short_2",
+            "output_length:prefix:short_5",
+            "output_length:prefix:zero_volume",
+            "output_length:short_0",
+            "output_length:short_1"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "candles.white_candle",
+      "canonical_id": "candles.white_candle",
+      "status": "available",
+      "reasons": [
+        "bounded_causal_certified"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [],
+          "positive_fixture": "owned_shapes_v1:0:1"
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.abc_correction",
+      "canonical_id": "chart.abc_correction",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.abcd_bear",
+      "canonical_id": "chart.abcd_bear",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "confirmed",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        },
+        {
+          "mode": "forming",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.abcd_bull",
+      "canonical_id": "chart.abcd_bull",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "confirmed",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        },
+        {
+          "mode": "forming",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.ascending_triangle",
+      "canonical_id": "chart.ascending_triangle",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "confirmed",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        },
+        {
+          "mode": "forming",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.bat_bear",
+      "canonical_id": "chart.bat_bear",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "confirmed",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        },
+        {
+          "mode": "forming",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.bat_bull",
+      "canonical_id": "chart.bat_bull",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "confirmed",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        },
+        {
+          "mode": "forming",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.big_m",
+      "canonical_id": "chart.big_m",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "confirmed",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        },
+        {
+          "mode": "forming",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.big_w",
+      "canonical_id": "chart.big_w",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "confirmed",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        },
+        {
+          "mode": "forming",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.broadening_bottom",
+      "canonical_id": "chart.broadening_bottom",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "confirmed",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        },
+        {
+          "mode": "forming",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.broadening_top",
+      "canonical_id": "chart.broadening_top",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "confirmed",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        },
+        {
+          "mode": "forming",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.broadening_wedge_asc",
+      "canonical_id": "chart.broadening_wedge_asc",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "confirmed",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        },
+        {
+          "mode": "forming",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.broadening_wedge_desc",
+      "canonical_id": "chart.broadening_wedge_desc",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "confirmed",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        },
+        {
+          "mode": "forming",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.bump_and_run_bottom",
+      "canonical_id": "chart.bump_and_run_bottom",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "confirmed",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        },
+        {
+          "mode": "forming",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.bump_and_run_top",
+      "canonical_id": "chart.bump_and_run_top",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "confirmed",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        },
+        {
+          "mode": "forming",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.busted_asc_triangle",
+      "canonical_id": "chart.busted_asc_triangle",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.busted_desc_triangle",
+      "canonical_id": "chart.busted_desc_triangle",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.busted_double_bottom",
+      "canonical_id": "chart.busted_double_bottom",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.busted_double_top",
+      "canonical_id": "chart.busted_double_top",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.busted_hs_bottom",
+      "canonical_id": "chart.busted_hs_bottom",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.busted_hs_top",
+      "canonical_id": "chart.busted_hs_top",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.busted_rectangle",
+      "canonical_id": "chart.busted_rectangle",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.busted_sym_triangle",
+      "canonical_id": "chart.busted_sym_triangle",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.busted_triple_bottom",
+      "canonical_id": "chart.busted_triple_bottom",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.busted_triple_top",
+      "canonical_id": "chart.busted_triple_top",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.butterfly_bear",
+      "canonical_id": "chart.butterfly_bear",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "confirmed",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        },
+        {
+          "mode": "forming",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.butterfly_bull",
+      "canonical_id": "chart.butterfly_bull",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "confirmed",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        },
+        {
+          "mode": "forming",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.carl_v",
+      "canonical_id": "chart.carl_v",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.carl_v_bearish",
+      "canonical_id": "chart.carl_v_bearish",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.carl_v_bullish",
+      "canonical_id": "chart.carl_v_bullish",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.cat_ears",
+      "canonical_id": "chart.cat_ears",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "confirmed",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        },
+        {
+          "mode": "forming",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.channel_asc",
+      "canonical_id": "chart.channel_asc",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "confirmed",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        },
+        {
+          "mode": "forming",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.channel_desc",
+      "canonical_id": "chart.channel_desc",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "confirmed",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        },
+        {
+          "mode": "forming",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.closing_price_reversal",
+      "canonical_id": "chart.closing_price_reversal",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.closing_price_reversal_bottom",
+      "canonical_id": "chart.closing_price_reversal_bottom",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.closing_price_reversal_top",
+      "canonical_id": "chart.closing_price_reversal_top",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.cloud_bank",
+      "canonical_id": "chart.cloud_bank",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.complex_hs_bottom",
+      "canonical_id": "chart.complex_hs_bottom",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.complex_hs_top",
+      "canonical_id": "chart.complex_hs_top",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.crab_bear",
+      "canonical_id": "chart.crab_bear",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "confirmed",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        },
+        {
+          "mode": "forming",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.crab_bull",
+      "canonical_id": "chart.crab_bull",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "confirmed",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        },
+        {
+          "mode": "forming",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.cup_with_handle",
+      "canonical_id": "chart.cup_with_handle",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "confirmed",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        },
+        {
+          "mode": "forming",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.dead_cat_bounce",
+      "canonical_id": "chart.dead_cat_bounce",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.dead_cat_bounce_inv",
+      "canonical_id": "chart.dead_cat_bounce_inv",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.descending_triangle",
+      "canonical_id": "chart.descending_triangle",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "confirmed",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        },
+        {
+          "mode": "forming",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.diamond_bottom",
+      "canonical_id": "chart.diamond_bottom",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "confirmed",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        },
+        {
+          "mode": "forming",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.diamond_top",
+      "canonical_id": "chart.diamond_top",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "confirmed",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        },
+        {
+          "mode": "forming",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.diving_board",
+      "canonical_id": "chart.diving_board",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.dome_shaped_volume",
+      "canonical_id": "chart.dome_shaped_volume",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.double_bottom",
+      "canonical_id": "chart.double_bottom",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "confirmed",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        },
+        {
+          "mode": "forming",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.double_bottom_adam_adam",
+      "canonical_id": "chart.double_bottom_adam_adam",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "confirmed",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        },
+        {
+          "mode": "forming",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.double_bottom_adam_eve",
+      "canonical_id": "chart.double_bottom_adam_eve",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "confirmed",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        },
+        {
+          "mode": "forming",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.double_bottom_eve_adam",
+      "canonical_id": "chart.double_bottom_eve_adam",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "confirmed",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        },
+        {
+          "mode": "forming",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.double_bottom_eve_eve",
+      "canonical_id": "chart.double_bottom_eve_eve",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "confirmed",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        },
+        {
+          "mode": "forming",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.double_bottom_ugly",
+      "canonical_id": "chart.double_bottom_ugly",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "confirmed",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        },
+        {
+          "mode": "forming",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.double_key_reversal",
+      "canonical_id": "chart.double_key_reversal",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.double_key_reversal_bearish",
+      "canonical_id": "chart.double_key_reversal_bearish",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.double_key_reversal_bullish",
+      "canonical_id": "chart.double_key_reversal_bullish",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.double_top",
+      "canonical_id": "chart.double_top",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "confirmed",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        },
+        {
+          "mode": "forming",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.double_top_adam_adam",
+      "canonical_id": "chart.double_top_adam_adam",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "confirmed",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        },
+        {
+          "mode": "forming",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.double_top_adam_eve",
+      "canonical_id": "chart.double_top_adam_eve",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "confirmed",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        },
+        {
+          "mode": "forming",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.double_top_eve_adam",
+      "canonical_id": "chart.double_top_eve_adam",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "confirmed",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        },
+        {
+          "mode": "forming",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.double_top_eve_eve",
+      "canonical_id": "chart.double_top_eve_eve",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "confirmed",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        },
+        {
+          "mode": "forming",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.elevator_stop",
+      "canonical_id": "chart.elevator_stop",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.failure_swing",
+      "canonical_id": "chart.failure_swing",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.fakey",
+      "canonical_id": "chart.fakey",
+      "status": "unsupported",
+      "reasons": [
+        "no_positive_fixture",
+        "output_length:prefix:flat",
+        "output_length:prefix:high_volatility",
+        "output_length:prefix:owned",
+        "output_length:prefix:short_2",
+        "output_length:prefix:short_5",
+        "output_length:prefix:zero_volume",
+        "output_length:short_0",
+        "output_length:short_1"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture",
+            "output_length:prefix:flat",
+            "output_length:prefix:high_volatility",
+            "output_length:prefix:owned",
+            "output_length:prefix:short_2",
+            "output_length:prefix:short_5",
+            "output_length:prefix:zero_volume",
+            "output_length:short_0",
+            "output_length:short_1"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.fakey_bearish",
+      "canonical_id": "chart.fakey_bearish",
+      "status": "unsupported",
+      "reasons": [
+        "no_positive_fixture",
+        "output_length:prefix:flat",
+        "output_length:prefix:high_volatility",
+        "output_length:prefix:owned",
+        "output_length:prefix:short_2",
+        "output_length:prefix:short_5",
+        "output_length:prefix:zero_volume",
+        "output_length:short_0",
+        "output_length:short_1"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture",
+            "output_length:prefix:flat",
+            "output_length:prefix:high_volatility",
+            "output_length:prefix:owned",
+            "output_length:prefix:short_2",
+            "output_length:prefix:short_5",
+            "output_length:prefix:zero_volume",
+            "output_length:short_0",
+            "output_length:short_1"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.fakey_bullish",
+      "canonical_id": "chart.fakey_bullish",
+      "status": "unsupported",
+      "reasons": [
+        "no_positive_fixture",
+        "output_length:prefix:flat",
+        "output_length:prefix:high_volatility",
+        "output_length:prefix:owned",
+        "output_length:prefix:short_2",
+        "output_length:prefix:short_5",
+        "output_length:prefix:zero_volume",
+        "output_length:short_0",
+        "output_length:short_1"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture",
+            "output_length:prefix:flat",
+            "output_length:prefix:high_volatility",
+            "output_length:prefix:owned",
+            "output_length:prefix:short_2",
+            "output_length:prefix:short_5",
+            "output_length:prefix:zero_volume",
+            "output_length:short_0",
+            "output_length:short_1"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.falling_volume_trend",
+      "canonical_id": "chart.falling_volume_trend",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.falling_wedge",
+      "canonical_id": "chart.falling_wedge",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "confirmed",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        },
+        {
+          "mode": "forming",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.flag_bear",
+      "canonical_id": "chart.flag_bear",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "confirmed",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        },
+        {
+          "mode": "forming",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.flag_bull",
+      "canonical_id": "chart.flag_bull",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "confirmed",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        },
+        {
+          "mode": "forming",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.flag_high_tight",
+      "canonical_id": "chart.flag_high_tight",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "confirmed",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        },
+        {
+          "mode": "forming",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.flat_base",
+      "canonical_id": "chart.flat_base",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.gap2h",
+      "canonical_id": "chart.gap2h",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.gap2h_combined",
+      "canonical_id": "chart.gap2h_combined",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.gap2h_inverted",
+      "canonical_id": "chart.gap2h_inverted",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.gartley_bear",
+      "canonical_id": "chart.gartley_bear",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "confirmed",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        },
+        {
+          "mode": "forming",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.gartley_bull",
+      "canonical_id": "chart.gartley_bull",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "confirmed",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        },
+        {
+          "mode": "forming",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.hook_reversal",
+      "canonical_id": "chart.hook_reversal",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.hook_reversal_bottom",
+      "canonical_id": "chart.hook_reversal_bottom",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.hook_reversal_top",
+      "canonical_id": "chart.hook_reversal_top",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.horn_bottom",
+      "canonical_id": "chart.horn_bottom",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.horn_top",
+      "canonical_id": "chart.horn_top",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.hs_bottom",
+      "canonical_id": "chart.hs_bottom",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "confirmed",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        },
+        {
+          "mode": "forming",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.hs_top",
+      "canonical_id": "chart.hs_top",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "confirmed",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        },
+        {
+          "mode": "forming",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.inside_day",
+      "canonical_id": "chart.inside_day",
+      "status": "available",
+      "reasons": [
+        "bounded_causal_certified"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [],
+          "positive_fixture": "owned_shapes_v1:2:1"
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.inverted_cup_with_handle",
+      "canonical_id": "chart.inverted_cup_with_handle",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "confirmed",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        },
+        {
+          "mode": "forming",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.inverted_roof",
+      "canonical_id": "chart.inverted_roof",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "confirmed",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        },
+        {
+          "mode": "forming",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.inverted_v_pivot",
+      "canonical_id": "chart.inverted_v_pivot",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.island_bottom",
+      "canonical_id": "chart.island_bottom",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "confirmed",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        },
+        {
+          "mode": "forming",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.island_top",
+      "canonical_id": "chart.island_top",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "confirmed",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        },
+        {
+          "mode": "forming",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.key_reversal",
+      "canonical_id": "chart.key_reversal",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.key_reversal_bottom",
+      "canonical_id": "chart.key_reversal_bottom",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.key_reversal_top",
+      "canonical_id": "chart.key_reversal_top",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.key_reversal_v2",
+      "canonical_id": "chart.key_reversal_v2",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.key_reversal_v2_bearish",
+      "canonical_id": "chart.key_reversal_v2_bearish",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.key_reversal_v2_bullish",
+      "canonical_id": "chart.key_reversal_v2_bullish",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.long_island",
+      "canonical_id": "chart.long_island",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "confirmed",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        },
+        {
+          "mode": "forming",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.measured_move_down",
+      "canonical_id": "chart.measured_move_down",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "confirmed",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        },
+        {
+          "mode": "forming",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.measured_move_up",
+      "canonical_id": "chart.measured_move_up",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture",
+        "prefix_invariance"
+      ],
+      "modes": [
+        {
+          "mode": "confirmed",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        },
+        {
+          "mode": "forming",
+          "reasons": [
+            "no_positive_fixture",
+            "prefix_invariance"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.mountain",
+      "canonical_id": "chart.mountain",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "confirmed",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        },
+        {
+          "mode": "forming",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.narrow_range_4",
+      "canonical_id": "chart.narrow_range_4",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.narrow_range_7",
+      "canonical_id": "chart.narrow_range_7",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.one_day_reversal",
+      "canonical_id": "chart.one_day_reversal",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.one_day_reversal_bottom",
+      "canonical_id": "chart.one_day_reversal_bottom",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.one_day_reversal_top",
+      "canonical_id": "chart.one_day_reversal_top",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.one_two_three",
+      "canonical_id": "chart.one_two_three",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.one_two_three_bottom",
+      "canonical_id": "chart.one_two_three_bottom",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.one_two_three_top",
+      "canonical_id": "chart.one_two_three_top",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.open_close_reversal",
+      "canonical_id": "chart.open_close_reversal",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.open_close_reversal_bottom",
+      "canonical_id": "chart.open_close_reversal_bottom",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.open_close_reversal_top",
+      "canonical_id": "chart.open_close_reversal_top",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.outside_day",
+      "canonical_id": "chart.outside_day",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.outside_day_bearish",
+      "canonical_id": "chart.outside_day_bearish",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.outside_day_bullish",
+      "canonical_id": "chart.outside_day_bullish",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.partial_decline",
+      "canonical_id": "chart.partial_decline",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "confirmed",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        },
+        {
+          "mode": "forming",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.partial_rise",
+      "canonical_id": "chart.partial_rise",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "confirmed",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        },
+        {
+          "mode": "forming",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.pennant_bear",
+      "canonical_id": "chart.pennant_bear",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "confirmed",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        },
+        {
+          "mode": "forming",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.pennant_bull",
+      "canonical_id": "chart.pennant_bull",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "confirmed",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        },
+        {
+          "mode": "forming",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.pipe_bottom",
+      "canonical_id": "chart.pipe_bottom",
+      "status": "unsupported",
+      "reasons": [
+        "execution_error:short_0:IndexError",
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "execution_error:short_0:IndexError",
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.pipe_top",
+      "canonical_id": "chart.pipe_top",
+      "status": "unsupported",
+      "reasons": [
+        "execution_error:short_0:IndexError",
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "execution_error:short_0:IndexError",
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.pivot_point_reversal",
+      "canonical_id": "chart.pivot_point_reversal",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.pivot_point_reversal_bottom",
+      "canonical_id": "chart.pivot_point_reversal_bottom",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.pivot_point_reversal_top",
+      "canonical_id": "chart.pivot_point_reversal_top",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.pothole",
+      "canonical_id": "chart.pothole",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.rectangle_bottom",
+      "canonical_id": "chart.rectangle_bottom",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "confirmed",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        },
+        {
+          "mode": "forming",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.rectangle_top",
+      "canonical_id": "chart.rectangle_top",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "confirmed",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        },
+        {
+          "mode": "forming",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.right_angle_broadening_asc",
+      "canonical_id": "chart.right_angle_broadening_asc",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "confirmed",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        },
+        {
+          "mode": "forming",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.right_angle_broadening_desc",
+      "canonical_id": "chart.right_angle_broadening_desc",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "confirmed",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        },
+        {
+          "mode": "forming",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.rising_volume_trend",
+      "canonical_id": "chart.rising_volume_trend",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.rising_wedge",
+      "canonical_id": "chart.rising_wedge",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "confirmed",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        },
+        {
+          "mode": "forming",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.roof",
+      "canonical_id": "chart.roof",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "confirmed",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        },
+        {
+          "mode": "forming",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.rounding_bottom",
+      "canonical_id": "chart.rounding_bottom",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "confirmed",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        },
+        {
+          "mode": "forming",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.rounding_top",
+      "canonical_id": "chart.rounding_top",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "confirmed",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        },
+        {
+          "mode": "forming",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.scallop_asc",
+      "canonical_id": "chart.scallop_asc",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "confirmed",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        },
+        {
+          "mode": "forming",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.scallop_asc_inv",
+      "canonical_id": "chart.scallop_asc_inv",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "confirmed",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        },
+        {
+          "mode": "forming",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.scallop_desc",
+      "canonical_id": "chart.scallop_desc",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "confirmed",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        },
+        {
+          "mode": "forming",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.scallop_desc_inv",
+      "canonical_id": "chart.scallop_desc_inv",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "confirmed",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        },
+        {
+          "mode": "forming",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.shark_32",
+      "canonical_id": "chart.shark_32",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.spikes",
+      "canonical_id": "chart.spikes",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.symmetrical_triangle",
+      "canonical_id": "chart.symmetrical_triangle",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "confirmed",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        },
+        {
+          "mode": "forming",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.three_bar",
+      "canonical_id": "chart.three_bar",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.three_bar_bearish",
+      "canonical_id": "chart.three_bar_bearish",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.three_bar_bullish",
+      "canonical_id": "chart.three_bar_bullish",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.three_day_compression",
+      "canonical_id": "chart.three_day_compression",
+      "status": "available",
+      "reasons": [
+        "bounded_causal_certified"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [],
+          "positive_fixture": "owned_shapes_v1:8:1"
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.three_dc",
+      "canonical_id": "chart.three_day_compression",
+      "status": "available",
+      "reasons": [
+        "bounded_causal_certified"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [],
+          "positive_fixture": "owned_shapes_v1:8:1"
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.three_lr",
+      "canonical_id": "chart.three_lr",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.three_lr_bearish",
+      "canonical_id": "chart.three_lr_bearish",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.three_lr_bullish",
+      "canonical_id": "chart.three_lr_bullish",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.three_lr_inverted_bearish",
+      "canonical_id": "chart.three_lr_inverted_bearish",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.three_lr_inverted_bullish",
+      "canonical_id": "chart.three_lr_inverted_bullish",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.three_peaks",
+      "canonical_id": "chart.three_peaks",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "confirmed",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        },
+        {
+          "mode": "forming",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.three_peaks_domed_house",
+      "canonical_id": "chart.three_peaks_domed_house",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "confirmed",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        },
+        {
+          "mode": "forming",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.three_valleys",
+      "canonical_id": "chart.three_valleys",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "confirmed",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        },
+        {
+          "mode": "forming",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.triple_bottom",
+      "canonical_id": "chart.triple_bottom",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "confirmed",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        },
+        {
+          "mode": "forming",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.triple_top",
+      "canonical_id": "chart.triple_top",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "confirmed",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        },
+        {
+          "mode": "forming",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.turn_key",
+      "canonical_id": "chart.turn_key",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.turn_key_bearish",
+      "canonical_id": "chart.turn_key_bearish",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.turn_key_bullish",
+      "canonical_id": "chart.turn_key_bullish",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.two_b",
+      "canonical_id": "chart.two_b",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.two_b_bottom",
+      "canonical_id": "chart.two_b_bottom",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.two_b_top",
+      "canonical_id": "chart.two_b_top",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.two_close",
+      "canonical_id": "chart.two_close",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.two_close_bearish",
+      "canonical_id": "chart.two_close_bearish",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.two_close_bullish",
+      "canonical_id": "chart.two_close_bullish",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.two_dance",
+      "canonical_id": "chart.two_dance",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.two_dance_bearish",
+      "canonical_id": "chart.two_dance_bearish",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.two_dance_bullish",
+      "canonical_id": "chart.two_dance_bullish",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.two_did",
+      "canonical_id": "chart.two_did",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.two_did_bearish",
+      "canonical_id": "chart.two_did_bearish",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.two_did_bullish",
+      "canonical_id": "chart.two_did_bullish",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.two_step",
+      "canonical_id": "chart.two_step",
+      "status": "unsupported",
+      "reasons": [
+        "no_positive_fixture",
+        "output_length:prefix:flat",
+        "output_length:prefix:high_volatility",
+        "output_length:prefix:owned",
+        "output_length:prefix:short_5",
+        "output_length:prefix:zero_volume",
+        "output_length:short_0",
+        "output_length:short_1",
+        "output_length:short_2"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture",
+            "output_length:prefix:flat",
+            "output_length:prefix:high_volatility",
+            "output_length:prefix:owned",
+            "output_length:prefix:short_5",
+            "output_length:prefix:zero_volume",
+            "output_length:short_0",
+            "output_length:short_1",
+            "output_length:short_2"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.two_step_bearish",
+      "canonical_id": "chart.two_step_bearish",
+      "status": "unsupported",
+      "reasons": [
+        "no_positive_fixture",
+        "output_length:prefix:flat",
+        "output_length:prefix:high_volatility",
+        "output_length:prefix:owned",
+        "output_length:prefix:short_5",
+        "output_length:prefix:zero_volume",
+        "output_length:short_0",
+        "output_length:short_1",
+        "output_length:short_2"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture",
+            "output_length:prefix:flat",
+            "output_length:prefix:high_volatility",
+            "output_length:prefix:owned",
+            "output_length:prefix:short_5",
+            "output_length:prefix:zero_volume",
+            "output_length:short_0",
+            "output_length:short_1",
+            "output_length:short_2"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.two_step_bullish",
+      "canonical_id": "chart.two_step_bullish",
+      "status": "unsupported",
+      "reasons": [
+        "no_positive_fixture",
+        "output_length:prefix:flat",
+        "output_length:prefix:high_volatility",
+        "output_length:prefix:owned",
+        "output_length:prefix:short_5",
+        "output_length:prefix:zero_volume",
+        "output_length:short_0",
+        "output_length:short_1",
+        "output_length:short_2"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture",
+            "output_length:prefix:flat",
+            "output_length:prefix:high_volatility",
+            "output_length:prefix:owned",
+            "output_length:prefix:short_5",
+            "output_length:prefix:zero_volume",
+            "output_length:short_0",
+            "output_length:short_1",
+            "output_length:short_2"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.two_tall",
+      "canonical_id": "chart.two_tall",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.two_tall_bearish",
+      "canonical_id": "chart.two_tall_bearish",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.two_tall_bullish",
+      "canonical_id": "chart.two_tall_bullish",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.u_shaped_volume",
+      "canonical_id": "chart.u_shaped_volume",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.v_bottom",
+      "canonical_id": "chart.v_bottom",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "confirmed",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        },
+        {
+          "mode": "forming",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.v_bottom_extended",
+      "canonical_id": "chart.v_bottom_extended",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "confirmed",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        },
+        {
+          "mode": "forming",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.v_pivot",
+      "canonical_id": "chart.v_pivot",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.v_top",
+      "canonical_id": "chart.v_top",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "confirmed",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        },
+        {
+          "mode": "forming",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.v_top_extended",
+      "canonical_id": "chart.v_top_extended",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "confirmed",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        },
+        {
+          "mode": "forming",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.vertical_run_down",
+      "canonical_id": "chart.vertical_run_down",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.vertical_run_up",
+      "canonical_id": "chart.vertical_run_up",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.volume_breakout_day",
+      "canonical_id": "chart.volume_breakout_day",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.weekly_reversal",
+      "canonical_id": "chart.weekly_reversal",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.weekly_reversal_downside",
+      "canonical_id": "chart.weekly_reversal_downside",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.weekly_reversal_upside",
+      "canonical_id": "chart.weekly_reversal_upside",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.wide_ranging_day",
+      "canonical_id": "chart.wide_ranging_day",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.wide_ranging_day_down",
+      "canonical_id": "chart.wide_ranging_day_down",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.wide_ranging_day_up",
+      "canonical_id": "chart.wide_ranging_day_up",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "default",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.wolfe_wave_bear",
+      "canonical_id": "chart.wolfe_wave_bear",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "confirmed",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        },
+        {
+          "mode": "forming",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    },
+    {
+      "pattern_id": "chart.wolfe_wave_bull",
+      "canonical_id": "chart.wolfe_wave_bull",
+      "status": "quarantined",
+      "reasons": [
+        "no_positive_fixture"
+      ],
+      "modes": [
+        {
+          "mode": "confirmed",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        },
+        {
+          "mode": "forming",
+          "reasons": [
+            "no_positive_fixture"
+          ],
+          "positive_fixture": null
+        }
+      ],
+      "required_bars": 160
+    }
+  ]
+}
