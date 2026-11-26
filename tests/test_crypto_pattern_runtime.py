@@ -140,7 +140,7 @@ def test_existing_spot_and_watch_models_run_without_refetch(closed):
             WatchSeries(interval="1h"),
         ),
     )
-    result = classic_pattern_evidence(spot, snapshot, closed.observed_at)
+    result = classic_pattern_evidence(spot, snapshot, closed.observed_at, run_date=END.date())
     assert [stream.status for stream in result.streams] == [
         "ok",
         "ok",

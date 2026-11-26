@@ -61,6 +61,7 @@ def evidence(stream: PatternStreamEvidence) -> CryptoPatternEvidence:
     return CryptoPatternEvidence(
         asset="BTC",
         streams=(stream,),
+        run_date=NOW.date(),
         catalog=PatternCatalogEvidence.model_validate(
             {
                 "total_count": 3,
@@ -80,6 +81,7 @@ def test_full_and_compact_json_roundtrip(evidence: CryptoPatternEvidence) -> Non
     assert CryptoPatternSummary.model_validate_json(compact.model_dump_json()) == compact
     assert compact.streams[0].provenance.catalog_digest == "sha256:fixture"
     assert compact.catalog.total_count == 3
+    assert compact.run_date == NOW.date()
 
 
 def test_nested_evidence_is_frozen(evidence: CryptoPatternEvidence) -> None:

@@ -1,4 +1,4 @@
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
 
 import pytest
 
@@ -12,14 +12,15 @@ from tradingagents.reporting import write_report_tree
 def current_state(monkeypatch) -> dict[str, str]:
     class Clock:
         @staticmethod
-        def now(tz):
-            assert tz is UTC
+        def now(tz=None):
             return datetime(2026, 1, 11, 0, 30, tzinfo=UTC)
 
-    monkeypatch.setattr("tradingagents.crypto_pattern_report.datetime", Clock)
+    monkeypatch.setattr("tradingagents.reporting.datetime", Clock)
+    monkeypatch.setattr("tradingagents.report_html.datetime", Clock)
     evidence = CryptoPatternEvidence.model_validate(
         {
             "asset": "BTC",
+            "run_date": date(2026, 1, 10),
             "analysis_date": None,
             "streams": [],
             "catalog": {"total_count": 0, "dispositions": []},
@@ -28,7 +29,7 @@ def current_state(monkeypatch) -> dict[str, str]:
     return {
         "asset_type": "crypto",
         "company_of_interest": "BTC-USD",
-        "trade_date": "2026-01-11",
+        "trade_date": "2026-01-10",
         "crypto_pattern_evidence": evidence.model_dump_json(),
         "crypto_pattern_report": evidence.summary().model_dump_json(),
     }
@@ -37,8 +38,8 @@ def current_state(monkeypatch) -> dict[str, str]:
 @pytest.mark.parametrize(
     "analysis_date,trade_date,accepted",
     [
-        (None, "2026-01-11", True),
-        (None, "2026-01-10", False),
+        (None, "2026-01-11", False),
+        (None, "2026-01-10", True),
         (None, "2026-01-12", False),
         ("2026-01-10", "2026-01-10", True),
         ("2026-01-10", "2026-01-11", False),
@@ -48,12 +49,14 @@ def current_state(monkeypatch) -> dict[str, str]:
         ("2026-01-10", "", False),
     ],
 )
-def test_date_identity_requires_utc_today_or_exact_historical_date(
-    current_state, analysis_date, trade_date, accepted
-):
+def test_date_identity_requires_stored_run_date(current_state, analysis_date, trade_date, accepted):
     evidence = CryptoPatternEvidence.model_validate_json(current_state["crypto_pattern_evidence"])
     evidence = CryptoPatternEvidence.model_validate(
-        evidence.model_dump() | {"analysis_date": analysis_date}
+        evidence.model_dump()
+        | {
+            "analysis_date": analysis_date,
+            "run_date": date.fromisoformat(analysis_date or "2026-01-10"),
+        }
     )
     state = current_state | {
         "trade_date": trade_date,
@@ -79,3 +82,10 @@ def test_current_evidence_writes_markdown_html_and_sidecar(current_state, tmp_pa
         (tmp_path / "evidence/crypto_patterns.json").read_text(encoding="utf-8")
     )
     assert saved.analysis_date is None
+    assert saved.run_date == date(2026, 1, 10)
+
+
+def test_current_evidence_renders_after_utc_midnight(current_state, tmp_path):
+    path = write_report_tree(current_state, "BTC-USD", tmp_path)
+
+    assert path.is_file()

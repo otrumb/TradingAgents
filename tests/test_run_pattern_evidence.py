@@ -16,7 +16,13 @@ from tradingagents.dataflows.crypto_pattern_models import (
 from tradingagents.dataflows.crypto_pattern_runtime import classic_pattern_evidence
 from tradingagents.dataflows.crypto_spot_models import CompletedDailyCandle, SpotPriceContext
 from tradingagents.dataflows.crypto_watch import collect_watch as collect_finalized_watch
-from tradingagents.dataflows.crypto_watch_models import DURATIONS, WatchSeries, WatchSnapshot
+from tradingagents.dataflows.crypto_watch_evaluator import evaluate_watch
+from tradingagents.dataflows.crypto_watch_models import (
+    DURATIONS,
+    WatchDecision,
+    WatchSeries,
+    WatchSnapshot,
+)
 from tradingagents.graph import run_decisions, trading_graph
 from tradingagents.graph.propagation import Propagator
 from tradingagents.graph.trading_graph import TradingAgentsGraph
@@ -80,7 +86,8 @@ def graph(monkeypatch):
 
 @pytest.mark.parametrize("asset", ["BTC", "ETH", "SOL"])
 @pytest.mark.parametrize("historical", [False, True])
-def test_run_reuses_finalized_objects_once(monkeypatch, graph, asset, historical):
+@pytest.mark.parametrize("older_gap", [False, True])
+def test_run_reuses_finalized_objects_once(monkeypatch, graph, asset, historical, older_gap):
     spot = spot_context(asset, historical=historical, indices=range(160))
     watches, wire_calls = [], []
     clock = END_AT + timedelta(minutes=30, seconds=5)
@@ -95,10 +102,10 @@ def test_run_reuses_finalized_objects_once(monkeypatch, graph, asset, historical
             rows = [
                 [
                     int((END_AT - duration * (160 - i)).timestamp() * 1000),
-                    "100",
-                    "110",
-                    "90",
-                    "100",
+                    str(200 + i * 2),
+                    str(201 + i * 2),
+                    str(199 + i * 2),
+                    str(200 + i * 2),
                     "1",
                     int((END_AT - duration * (159 - i)).timestamp() * 1000) - 1,
                     "100",
@@ -109,6 +116,10 @@ def test_run_reuses_finalized_objects_once(monkeypatch, graph, asset, historical
                 ]
                 for i in range(160 if historical else 161)
             ]
+            if query["interval"][0] == "4h":
+                rows[158][3] = "1"
+            if older_gap and query["interval"][0] == "1d":
+                del rows[20]
             payload = rows[-int(query["limit"][0]) :]
         response = requests.Response()
         response.status_code = 200
@@ -128,10 +139,12 @@ def test_run_reuses_finalized_objects_once(monkeypatch, graph, asset, historical
         watches.append(watch)
         return watch
 
-    def evidence(supplied_spot, supplied_watch, observed_at):
+    def evidence(supplied_spot, supplied_watch, observed_at, *, run_date):
         assert supplied_spot is spot and supplied_watch is watches[0]
         executions.append(observed_at)
-        return classic_pattern_evidence(supplied_spot, supplied_watch, observed_at)
+        return classic_pattern_evidence(
+            supplied_spot, supplied_watch, observed_at, run_date=run_date
+        )
 
     monkeypatch.setattr(trading_graph, "collect_spot_prices", collect_spot)
     monkeypatch.setattr(run_decisions, "collect_watch", collect_watch)
@@ -150,12 +163,32 @@ def test_run_reuses_finalized_objects_once(monkeypatch, graph, asset, historical
     assert wire_calls.count("/fapi/v1/klines") == 3
     assert wire_calls.count("/fapi/v1/time") == (0 if historical else 2)
     assert full.analysis_date == spot.analysis_date
+    assert full.run_date == date.fromisoformat(trade_date)
     assert compact == full.summary()
-    assert [(row.status, row.bar_count) for row in full.streams] == [("ok", 160)] * 4
+    assert [(row.status, row.bar_count) for row in full.streams] == [
+        ("ok", 160),
+        ("missing_bars", 159) if older_gap else ("ok", 160),
+        ("ok", 160),
+        ("ok", 160),
+    ]
     assert full.streams[0].provenance.retrieved_at == RETRIEVED_AT
     assert all(row.required_bars == 160 for row in full.streams)
     assert all(row.provenance.retrieved_at == watches[0].observable_at for row in full.streams[1:])
     assert all(row.last_bar_at is None or row.last_bar_at < END_AT for row in full.streams)
+    saved = WatchSnapshot.model_validate_json(state["crypto_futures_watch_evidence"])
+    assert saved == watches[0]
+    control = saved.model_copy(
+        update={
+            "series": tuple(
+                series.model_copy(update={"candles": series.candles[-100:]})
+                for series in saved.series
+            )
+        }
+    )
+    expected = evaluate_watch(control)
+    assert expected.action == "consider_long" and expected.hypothetical is not None
+    assert WatchDecision.model_validate_json(state["crypto_futures_watch_data"]) == expected
+    assert evaluate_watch(saved) == expected
 
 
 @pytest.mark.parametrize(

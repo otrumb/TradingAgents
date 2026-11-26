@@ -20,6 +20,7 @@ def evidence() -> CryptoPatternEvidence:
     return CryptoPatternEvidence.model_validate(
         {
             "asset": "BTC",
+            "run_date": NOW.date(),
             "analysis_date": "2026-01-10",
             "catalog": {
                 "total_count": 300,
