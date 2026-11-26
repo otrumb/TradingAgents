@@ -19,7 +19,12 @@ from tradingagents.dataflows.crypto_watch_backtest import (
     evaluate_watch_history,
 )
 from tradingagents.dataflows.crypto_watch_evaluator import evaluate_watch
-from tradingagents.dataflows.crypto_watch_models import EPOCH, WatchDecision, WatchRequest
+from tradingagents.dataflows.crypto_watch_models import (
+    EPOCH,
+    WatchDecision,
+    WatchRequest,
+    WatchSnapshot,
+)
 from tradingagents.reporting import write_report_tree
 
 
@@ -54,13 +59,13 @@ def test_extended_collected_archive_resolves_168_bar_expiry_without_future_signa
     rows = watch_wire["rows"]["1h"]
     first = rows[0]
     prefix = []
-    for hours in range(108, 0, -1):
+    for hours in range(107, 0, -1):
         row = list(first)
         row[0] -= hours * 3600000
         row[6] -= hours * 3600000
         prefix.append(row)
     tail = []
-    for candle in future(168).candles:
+    for candle in future(169).candles:
         tail.append(
             [
                 (candle.open_time - EPOCH) // MS,
@@ -78,20 +83,22 @@ def test_extended_collected_archive_resolves_168_bar_expiry_without_future_signa
             ]
         )
     watch_wire["rows"]["1h"] = prefix + rows + tail
-    end = CUTOFF + timedelta(hours=168)
+    end = CUTOFF + timedelta(hours=169)
     watch_wire["limit"] = 300
     watch_wire["end"] = (end - EPOCH) // MS - 1
     archive = collect_watch(
         WatchRequest(asset="BTC", as_of=end, timeout_seconds=7, history_limit=300)
     )
 
-    (result,) = evaluate_watch_history(archive, (CUTOFF,))
+    stamp = CUTOFF + timedelta(seconds=9)
+    (result,) = evaluate_watch_history(archive, (stamp,))
 
     assert len(archive.series[2].candles) == 300
-    assert result.decision == evaluate_watch(original)
+    expected = WatchSnapshot.model_validate(original.model_dump() | {"observable_at": stamp})
+    assert result.decision == evaluate_watch(expected)
     assert result.hypothetical_outcome.status == "expired"
     assert result.hypothetical_outcome.closed_holding_bars == 168
-    assert result.hypothetical_outcome.entry_bar == CUTOFF
+    assert result.hypothetical_outcome.entry_bar == CUTOFF + timedelta(hours=1)
     assert result.hypothetical_outcome.outcome_bar == end - MS
 
 

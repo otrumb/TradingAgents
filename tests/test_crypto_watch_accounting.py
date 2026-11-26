@@ -4,7 +4,7 @@ from decimal import Decimal, localcontext
 import pytest
 from pydantic import ValidationError
 
-from tests.crypto_watch_fixtures import CUTOFF, watch_wire as watch_wire
+from tests.crypto_watch_fixtures import CUTOFF, MS, watch_wire as watch_wire
 from tests.test_crypto_watch_scenarios import future, plan
 from tradingagents.dataflows.crypto_models import ContextContractError
 from tradingagents.dataflows.crypto_watch import collect_watch
@@ -14,7 +14,7 @@ from tradingagents.dataflows.crypto_watch_backtest import (
     evaluate_hypothetical,
     evaluate_watch_history,
 )
-from tradingagents.dataflows.crypto_watch_models import WatchDecision, WatchRequest
+from tradingagents.dataflows.crypto_watch_models import EPOCH, WatchDecision, WatchRequest
 from tradingagents.dataflows.crypto_watch_scenario_models import HypotheticalOutcome
 
 
@@ -52,8 +52,10 @@ def test_each_wait_reason_counts_decisions_once_even_when_reasons_cooccur():
 
 
 def test_history_accounts_for_insufficient_warmup(watch_wire):
-    archive = collect_watch(WatchRequest(asset="BTC", as_of=CUTOFF, timeout_seconds=7))
-    times = (CUTOFF - timedelta(hours=1), CUTOFF)
+    end = CUTOFF + timedelta(seconds=9)
+    watch_wire["end"] = (end - EPOCH) // MS - 1
+    archive = collect_watch(WatchRequest(asset="BTC", as_of=end, timeout_seconds=7))
+    times = (end - timedelta(hours=1), end)
 
     summary = aggregate_watch_history(evaluate_watch_history(archive, times))
 
