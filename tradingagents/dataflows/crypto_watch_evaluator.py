@@ -2,7 +2,7 @@
 
 from datetime import datetime
 from decimal import Decimal
-from typing import Literal, TypedDict, assert_never
+from typing import Final, Literal, TypedDict, assert_never
 
 from .crypto_models import Asset, ContextContractError
 from .crypto_spot_models import SpotSymbol
@@ -18,6 +18,8 @@ from .crypto_watch_models import (
 )
 from .crypto_watch_report import render_watch_details
 from .crypto_watch_scenario_models import HypotheticalPlan
+
+WATCH_DECISION_HISTORY_LIMIT: Final[int] = 100
 
 
 class _Evidence(TypedDict):
@@ -41,9 +43,19 @@ class _Signals(TypedDict):
 
 def evaluate_watch(snapshot: WatchSnapshot) -> WatchDecision:
     """Resolve quality, bias, conflict, setup, then trigger; emit one wait reason."""
-    cutoff = snapshot.cutoff
+    decision_snapshot = snapshot.model_copy(
+        update={
+            "series": tuple(
+                series.model_copy(
+                    update={"candles": series.candles[-WATCH_DECISION_HISTORY_LIMIT:]}
+                )
+                for series in snapshot.series
+            )
+        }
+    )
+    cutoff = decision_snapshot.cutoff
     statuses: list[Literal["ok", "unavailable", "insufficient_history", "stale"]] = []
-    for series in snapshot.series:
+    for series in decision_snapshot.series:
         candles = series.candles
         if cutoff is None or series.failure is not None or not candles:
             statuses.append("unavailable")
@@ -57,23 +69,25 @@ def evaluate_watch(snapshot: WatchSnapshot) -> WatchDecision:
         else:
             statuses.append("ok")
     evidence: _Evidence = {
-        "asset": snapshot.asset,
-        "symbol": snapshot.symbol,
-        "source": snapshot.source,
+        "asset": decision_snapshot.asset,
+        "symbol": decision_snapshot.symbol,
+        "source": decision_snapshot.source,
         "as_of": cutoff,
         "cutoff": cutoff,
-        "observable_at": snapshot.observable_at,
+        "observable_at": decision_snapshot.observable_at,
         "latest_close_times": tuple(
-            s.candles[-1].close_time if s.candles else None for s in snapshot.series
+            s.candles[-1].close_time if s.candles else None for s in decision_snapshot.series
         ),
         "statuses": tuple(statuses),
-        "latest_closes": tuple(s.candles[-1].close if s.candles else None for s in snapshot.series),
+        "latest_closes": tuple(
+            s.candles[-1].close if s.candles else None for s in decision_snapshot.series
+        ),
         "conditions": (),
     }
     for reason in ("unavailable", "insufficient_history", "stale"):
         if reason in statuses:
             return WatchDecision(**evidence, reasons=(reason,))
-    evidence["conditions"] = diagnose_watch(snapshot)
+    evidence["conditions"] = diagnose_watch(decision_snapshot)
     directions: list[Direction] = []
     for interval in ("1d", "4h", "1h"):
         long = all(
@@ -104,13 +118,13 @@ def evaluate_watch(snapshot: WatchSnapshot) -> WatchDecision:
             action = "consider_short"
         case unreachable:
             assert_never(unreachable)
-    four = snapshot.series[1].candles
-    if cutoff is None or snapshot.observable_at is None:
+    four = decision_snapshot.series[1].candles
+    if cutoff is None or decision_snapshot.observable_at is None:
         raise ContextContractError(field="watch aligned cutoff")
     plan = HypotheticalPlan(
         direction=bias,
         decision_as_of=cutoff,
-        observable_at=snapshot.observable_at,
+        observable_at=decision_snapshot.observable_at,
         invalidation=min(c.low for c in four[-4:-1])
         if bias == "long"
         else max(c.high for c in four[-4:-1]),
