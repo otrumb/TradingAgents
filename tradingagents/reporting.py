@@ -11,8 +11,10 @@ from datetime import datetime
 from pathlib import Path
 
 from tradingagents.agents.rating import run_rating
+from tradingagents.crypto_pattern_report import render_patterns, validate_patterns
 from tradingagents.dataflows.crypto_derivatives_models import DerivativesHistory
 from tradingagents.dataflows.crypto_models import CryptoContext
+from tradingagents.dataflows.crypto_pattern_models import CryptoPatternEvidence
 from tradingagents.dataflows.crypto_spot_models import SpotPriceContext
 from tradingagents.dataflows.crypto_watch_models import WatchDecision, WatchSnapshot
 from tradingagents.report_decision import decision_summary, observed_sources
@@ -115,6 +117,15 @@ def _report_parts(final_state: dict) -> list[tuple[str, str, list[tuple[str, str
         if summary
         else []
     )
+    patterns = validate_patterns(final_state)
+    if patterns is not None:
+        parts.append(
+            (
+                "Classic Pattern Evidence",
+                "6_patterns",
+                [("Certified Observations", "patterns.md", render_patterns(patterns.summary()))],
+            )
+        )
     for heading, folder, agents in _SECTIONS:
         written = []
         for agent, filename, path in agents:
@@ -148,6 +159,7 @@ def write_report_tree(
         ("crypto_derivatives_data", "crypto_derivatives.json", DerivativesHistory),
         ("crypto_futures_watch_evidence", "crypto_futures_watch.json", WatchSnapshot),
         ("crypto_futures_watch_data", "crypto_futures_watch_decision.json", WatchDecision),
+        ("crypto_pattern_evidence", "crypto_patterns.json", CryptoPatternEvidence),
     ):
         evidence_path = save_path / "evidence" / filename
         raw = final_state.get(key)
@@ -193,4 +205,6 @@ def write_report_tree(
                 (save_path / folder / filename).unlink(missing_ok=True)
     if not any(folder == "0_summary" for _heading, folder, _written in parts):
         (save_path / "0_summary" / "decision.md").unlink(missing_ok=True)
+    if not any(folder == "6_patterns" for _heading, folder, _written in parts):
+        (save_path / "6_patterns" / "patterns.md").unlink(missing_ok=True)
     return save_path / "complete_report.md"
