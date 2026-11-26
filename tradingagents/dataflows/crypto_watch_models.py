@@ -28,6 +28,8 @@ DURATIONS: Final[dict[Interval, timedelta]] = {
     "1h": timedelta(hours=1),
 }
 EPOCH: Final = datetime(1970, 1, 1, tzinfo=UTC)
+WATCH_SAFETY_LAG: Final = timedelta(seconds=5)
+HISTORICAL_OBSERVATION_LATENCY: Final = timedelta(seconds=4)
 REQUIRED: Final[dict[Interval, int]] = {"1d": 55, "4h": 21, "1h": 21}
 FRESHNESS: Final[dict[Interval, timedelta]] = {
     "1d": timedelta(hours=48),
@@ -106,11 +108,15 @@ class WatchSnapshot(FrozenModel):
             if self.cutoff != self.as_of or self.server_time is not None or self.clock_failure:
                 raise ContextContractError(field="watch historical cutoff")
         elif self.clock_failure is None:
-            if self.server_time is None or self.cutoff != self.server_time - timedelta(seconds=5):
+            if self.server_time is None or self.cutoff != self.server_time - WATCH_SAFETY_LAG:
                 raise ContextContractError(field="watch exchange cutoff")
         elif self.cutoff is not None or self.server_time is not None:
             raise ContextContractError(field="watch failed clock cutoff")
-        if self.observable_at != (self.as_of if self.as_of is not None else self.server_time):
+        earliest_observation = self.as_of if self.as_of is not None else self.server_time
+        if (earliest_observation is None) != (self.observable_at is None) or (
+            earliest_observation is not None
+            and (self.observable_at is None or self.observable_at < earliest_observation)
+        ):
             raise ContextContractError(field="watch observable timestamp")
         if self.cutoff is None and any(s.candles for s in self.series):
             raise ContextContractError(field="watch missing cutoff")

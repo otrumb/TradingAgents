@@ -47,7 +47,10 @@ def watch_wire(monkeypatch):
         state["calls"].append((url.path, parse_qs(url.query)))
         if url.path == "/fapi/v1/time":
             assert not url.query
-            payload = state["clock"]
+            clock_calls = sum(path == "/fapi/v1/time" for path, _ in state["calls"])
+            payload = (
+                state.get("final_clock", state["clock"]) if clock_calls == 2 else state["clock"]
+            )
         else:
             assert url.path == "/fapi/v1/klines"
             query = parse_qs(url.query)

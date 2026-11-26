@@ -22,7 +22,9 @@ def test_current_contract_common_exchange_cutoff_and_decimal(watch_wire, asset):
     watch_wire["symbol"] = f"{asset}USDT"
     snapshot = collect_watch(WatchRequest(asset=asset, timeout_seconds=7))
 
-    assert [path for path, _ in watch_wire["calls"]] == ["/fapi/v1/time"] + ["/fapi/v1/klines"] * 3
+    assert [path for path, _ in watch_wire["calls"]] == (
+        ["/fapi/v1/time"] + ["/fapi/v1/klines"] * 3 + ["/fapi/v1/time"]
+    )
     assert snapshot.cutoff == CUTOFF
     assert snapshot.server_time == CUTOFF + timedelta(seconds=5)
     assert snapshot.market == "USD-M perpetual"
@@ -73,21 +75,53 @@ def test_historical_uses_end_time_never_current_clock(watch_wire):
 )
 def test_failure_local_and_waits(watch_wire, payload, kind):
     watch_wire["rows"]["4h"] = payload
+    watch_wire["final_clock"] = {"serverTime": (CUTOFF - EPOCH) // MS + 9000}
     snapshot = collect_watch(WatchRequest(asset="BTC", timeout_seconds=7))
 
     assert snapshot.series[1].failure.kind == kind
     assert snapshot.series[1].candles == ()
     assert (len(snapshot.series[0].candles), len(snapshot.series[2].candles)) == (55, 24)
+    assert snapshot.observable_at == CUTOFF + timedelta(seconds=9)
+    assert snapshot.clock_failure is None
     assert evaluate_watch(snapshot).reasons == ("unavailable",)
 
 
-def test_failed_clock_never_collects_candles(watch_wire):
-    watch_wire["clock"] = requests.Timeout("offline")
+@pytest.mark.parametrize(
+    "payload,kind", [("429", "http"), (requests.Timeout("offline"), "transport"), ({}, "parse")]
+)
+def test_failed_clock_never_collects_candles(watch_wire, payload, kind):
+    watch_wire["clock"] = payload
     snapshot = collect_watch(WatchRequest(asset="BTC", timeout_seconds=7))
     assert len(watch_wire["calls"]) == 1
     assert snapshot.cutoff is None
     assert snapshot.observable_at is evaluate_watch(snapshot).observable_at is None
     assert evaluate_watch(snapshot).reasons == ("unavailable",)
+    assert snapshot.clock_failure.kind == kind
+    assert "initial" in snapshot.clock_failure.detail
+
+
+@pytest.mark.parametrize(
+    "payload,kind",
+    [
+        ("429", "http"),
+        (requests.Timeout("offline"), "transport"),
+        ({}, "parse"),
+        ("redirect", "parse"),
+    ],
+)
+def test_final_clock_failure_discards_all_evidence(watch_wire, payload, kind):
+    watch_wire["final_clock"] = payload
+    snapshot = collect_watch(WatchRequest(asset="BTC", timeout_seconds=7))
+    decision = evaluate_watch(snapshot)
+
+    assert len(watch_wire["calls"]) == 5
+    assert snapshot.cutoff is snapshot.server_time is snapshot.observable_at is None
+    assert all(not s.candles and s.failure == snapshot.clock_failure for s in snapshot.series)
+    assert snapshot.clock_failure.kind == kind
+    assert "final" in snapshot.clock_failure.detail
+    assert decision.reasons == ("unavailable",)
+    assert decision.cutoff is decision.observable_at is None
+    assert decision.latest_closes == (None, None, None)
 
 
 def test_model_rejects_scope_and_decision_forgery(watch_wire):
