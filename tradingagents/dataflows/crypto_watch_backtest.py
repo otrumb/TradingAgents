@@ -6,7 +6,15 @@ from typing import Final, assert_never
 
 from .crypto_models import ContextContractError, FrozenModel
 from .crypto_watch_evaluator import evaluate_watch
-from .crypto_watch_models import DURATIONS, EPOCH, WatchDecision, WatchSeries, WatchSnapshot
+from .crypto_watch_models import (
+    DURATIONS,
+    EPOCH,
+    HISTORICAL_OBSERVATION_LATENCY,
+    WATCH_SAFETY_LAG,
+    WatchDecision,
+    WatchSeries,
+    WatchSnapshot,
+)
 from .crypto_watch_scenario_models import HypotheticalOutcome, HypotheticalPlan, WatchCosts
 
 DEFAULT_COSTS: Final = WatchCosts()
@@ -103,7 +111,7 @@ def evaluate_watch_history(
     decision_times: tuple[datetime, ...],
     costs: WatchCosts = DEFAULT_COSTS,
 ) -> tuple[HistoricalWatchResult, ...]:
-    """Rebuild collector-sized prefixes at each cutoff; future bars only price outcomes."""
+    """Replay observable decision stamps with lagged evidence; future bars only price outcomes."""
     if archive.as_of is None or archive.cutoff is None:
         raise ContextContractError(field="historical watch archive required")
     if any(stamp.tzinfo is None or stamp.utcoffset() is None for stamp in decision_times):
@@ -116,18 +124,19 @@ def evaluate_watch_history(
     for stamp in decision_times:
         if stamp.tzinfo is None or stamp.utcoffset() is None or stamp > archive.cutoff:
             raise ContextContractError(field="historical decision timestamp")
+        cutoff = stamp - HISTORICAL_OBSERVATION_LATENCY - WATCH_SAFETY_LAG
         prefix = WatchSnapshot(
             asset=archive.asset,
             symbol=archive.symbol,
-            as_of=stamp,
-            cutoff=stamp,
+            as_of=cutoff,
+            cutoff=cutoff,
             observable_at=stamp,
             server_time=None,
             series=tuple(
                 WatchSeries(
                     interval=s.interval,
                     failure=s.failure,
-                    candles=tuple(c for c in s.candles if c.close_time < stamp)[-100:],
+                    candles=tuple(c for c in s.candles if c.close_time < cutoff)[-100:],
                 )
                 for s in archive.series
             ),

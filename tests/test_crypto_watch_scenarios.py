@@ -186,20 +186,25 @@ def test_history_filters_future_signals_but_uses_future_outcomes(watch_wire):
     snapshot = collect_watch(WatchRequest(asset="BTC", as_of=CUTOFF, timeout_seconds=7))
     series = (
         *snapshot.series[:2],
-        WatchSeries(interval="1h", candles=snapshot.series[2].candles + future(low="90").candles),
+        WatchSeries(
+            interval="1h", candles=snapshot.series[2].candles + future(2, low="90").candles
+        ),
     )
     archive = WatchSnapshot(
         asset="BTC",
         symbol="BTCUSDT",
-        as_of=CUTOFF + timedelta(hours=1),
-        cutoff=CUTOFF + timedelta(hours=1),
-        observable_at=CUTOFF + timedelta(hours=1),
+        as_of=CUTOFF + timedelta(hours=2),
+        cutoff=CUTOFF + timedelta(hours=2),
+        observable_at=CUTOFF + timedelta(hours=2),
         server_time=None,
         series=series,
     )
-    (result,) = evaluate_watch_history(archive, (CUTOFF,))
-    assert result.decision == evaluate_watch(snapshot)
-    assert result.decision.observable_at == result.decision.hypothetical.observable_at == CUTOFF
+    stamp = CUTOFF + timedelta(seconds=9)
+    (result,) = evaluate_watch_history(archive, (stamp,))
+    expected = WatchSnapshot.model_validate(snapshot.model_dump() | {"observable_at": stamp})
+    assert result.decision == evaluate_watch(expected)
+    assert result.decision.observable_at == result.decision.hypothetical.observable_at == stamp
+    assert result.hypothetical_outcome.entry_bar == CUTOFF + timedelta(hours=1)
     assert result.hypothetical_outcome.entry_price == Decimal(100)
     assert result.hypothetical_outcome.status == "pending_outcome"
 
